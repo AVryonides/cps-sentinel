@@ -57,3 +57,28 @@ def test_twin_command_writes_csv_and_plot(tmp_path: Path) -> None:
     assert len(frame) == 288
     assert "expected_grid_power_kw" in frame
     assert "grid_power_residual_kw" in frame
+
+
+def test_scenario_command_writes_labeled_csv_and_plot(tmp_path: Path) -> None:
+    output = tmp_path / "scenario.csv"
+    plot = tmp_path / "scenario.html"
+
+    exit_code = main(
+        [
+            "scenario",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scenario",
+            str(ROOT / "config" / "scenarios" / "pv-false-data-injection.yaml"),
+            "--output",
+            str(output),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert plot.is_file()
+    assert frame["scenario_active"].sum() == 36
+    assert set(frame.loc[frame["scenario_active"], "ground_truth_label"]) == {"attack"}

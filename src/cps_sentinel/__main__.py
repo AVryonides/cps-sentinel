@@ -10,6 +10,8 @@ from pathlib import Path
 import pandas as pd
 
 from cps_sentinel.config import load_settings
+from cps_sentinel.scenarios import load_scenario, summarize_scenario
+from cps_sentinel.scenarios.plotting import write_scenario_plot
 from cps_sentinel.simulation import run_simulation, summarize_simulation
 from cps_sentinel.simulation.plotting import write_simulation_plot
 from cps_sentinel.twin import run_digital_twin, summarize_twin
@@ -41,6 +43,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination CSV path",
     )
     twin.add_argument("--plot", help="Optional destination for an interactive HTML plot")
+
+    scenario = commands.add_parser("scenario", help="Run a labeled Phase 3 attack or fault")
+    scenario.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    scenario.add_argument("--scenario", required=True, help="Path to scenario YAML")
+    scenario.add_argument(
+        "--output",
+        default="data/simulated/scenario.csv",
+        help="Destination labeled CSV path",
+    )
+    scenario.add_argument("--plot", help="Optional destination for an interactive HTML plot")
     return parser
 
 
@@ -90,6 +102,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Battery-SOC MAE: {twin_summary.battery_soc_mae:.5f}")
         print(f"Controller agreement: {twin_summary.controller_action_agreement:.1%}")
         print(f"Maximum twin balance error: {twin_summary.maximum_twin_balance_error_kw:.3e} kW")
+        return 0
+
+    if args.command == "scenario":
+        total_steps = (
+            settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes
+        )
+        scenario_spec = load_scenario(args.scenario, total_steps)
+        observed = run_simulation(settings, scenario_spec)
+        frame = run_digital_twin(settings, observed)
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_csv(output, index=False)
+        if args.plot:
+            plot_path = write_scenario_plot(frame, args.plot)
+            print(f"Interactive plot: {plot_path}")
+        scenario_summary = summarize_scenario(frame)
+        print(f"Scenario complete: {scenario_spec.name}")
+        print(f"Kind: {scenario_spec.kind.value} ({scenario_spec.ground_truth_label})")
+        print(f"Target: {scenario_spec.target.value}")
+        print(f"Active steps: {scenario_summary.active_steps}")
+        print(f"Peak PV sensor error: {scenario_summary.peak_pv_sensor_error_kw:.4f} kW")
+        print(f"Peak load sensor error: {scenario_summary.peak_load_sensor_error_kw:.4f} kW")
+        print(f"Peak command deviation: {scenario_summary.peak_command_deviation_kw:.4f} kW")
+        print(f"Peak grid residual: {scenario_summary.peak_grid_residual_kw:.4f} kW")
+        print(f"Peak SOC residual: {scenario_summary.peak_soc_residual:.5f}")
+        print(
+            f"Active controller disagreement: "
+            f"{scenario_summary.active_action_disagreement_rate:.1%}"
+        )
+        print(f"Labeled output: {output}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes

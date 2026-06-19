@@ -1,0 +1,5 @@
+name: PV sensor freeze
+kind: sensor_freeze
+target: pv_sensor
+start_step: 120
+duration_steps: 36

@@ -1,0 +1,6 @@
+name: Battery command delay
+kind: command_delay
+target: battery_command
+start_step: 108
+duration_steps: 48
+delay_steps: 6

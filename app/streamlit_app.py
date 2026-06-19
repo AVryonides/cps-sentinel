@@ -14,11 +14,11 @@ st.title("CPS Sentinel")
 st.caption("Digital Twin-Based Security and Health Monitoring for Cyber-Physical Systems")
 
 left, middle, right = st.columns(3)
-left.metric("Project phase", "2 - Digital twin")
+left.metric("Project phase", "3 - Attack and fault injection")
 middle.metric("Simulation horizon", f"{SETTINGS.simulation.duration_hours} hours")
 right.metric("Timestep", f"{SETTINGS.simulation.timestep_minutes} minutes")
 
 st.info(
-    "The simulator and independent digital twin are available from the command line. "
-    "A later dashboard phase will add scenario controls and interactive attack analysis."
+    "Closed-loop attack and fault scenarios are available from the command line. "
+    "A later dashboard phase will expose these controls interactively."
 )

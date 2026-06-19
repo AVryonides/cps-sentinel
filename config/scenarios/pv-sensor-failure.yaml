@@ -1,0 +1,5 @@
+name: PV sensor failure
+kind: sensor_failure
+target: pv_sensor
+start_step: 132
+duration_steps: 24
