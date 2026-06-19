@@ -50,6 +50,15 @@ cps-sentinel simulate \
   --plot reports/figures/baseline.html
 ```
 
+Run the Phase 2 independent digital twin:
+
+```bash
+cps-sentinel twin \
+  --config config/default.yaml \
+  --output data/simulated/twin-baseline.csv \
+  --plot reports/figures/twin-baseline.html
+```
+
 Run the dashboard:
 
 ```bash
@@ -70,3 +79,13 @@ be redistributed. See the README files under `data/raw/` for provenance and hand
 
 See [the Phase 1 simulator specification](docs/phase-1-simulator.md) for the physical model,
 controller behavior, outputs, and acceptance criteria.
+
+## Digital twin conventions
+
+- Expected values come from time-based reference profiles and independent twin state.
+- Observed sensor values are used only to calculate residuals after prediction.
+- Every residual uses `observed - expected`.
+- The twin makes no attack decision in Phase 2; it exposes evidence for later detection.
+
+See [the Phase 2 digital-twin specification](docs/phase-2-digital-twin.md) for the model
+boundary, output schema, residual definitions, and acceptance criteria.

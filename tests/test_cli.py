@@ -33,3 +33,27 @@ def test_simulate_command_writes_csv(tmp_path: Path) -> None:
     assert output.is_file()
     assert plot.is_file()
     assert len(pd.read_csv(output)) == 288
+
+
+def test_twin_command_writes_csv_and_plot(tmp_path: Path) -> None:
+    output = tmp_path / "twin.csv"
+    plot = tmp_path / "twin.html"
+
+    exit_code = main(
+        [
+            "twin",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--output",
+            str(output),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert plot.is_file()
+    assert len(frame) == 288
+    assert "expected_grid_power_kw" in frame
+    assert "grid_power_residual_kw" in frame
