@@ -24,7 +24,16 @@ class SimulationSummary:
 
 def run_simulation(settings: Settings) -> pd.DataFrame:
     """Run a deterministic nanogrid simulation from validated settings."""
-    profiles = generate_profiles(settings)
+    return simulate_profiles(settings, generate_profiles(settings))
+
+
+def simulate_profiles(settings: Settings, profiles: pd.DataFrame) -> pd.DataFrame:
+    """Apply the nanogrid physics and controller to an aligned profile frame."""
+    required_columns = {"timestamp", "pv_kw", "load_kw"}
+    missing = required_columns.difference(profiles.columns)
+    if missing:
+        raise ValueError(f"Profile frame is missing columns: {sorted(missing)}")
+
     battery = BatteryModel(settings.simulation.battery)
     timestep_hours = settings.simulation.timestep_minutes / 60
     soc = settings.simulation.battery.initial_soc
