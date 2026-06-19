@@ -38,7 +38,16 @@ mypy src
 Run the configuration smoke check:
 
 ```bash
-cps-sentinel --config config/default.yaml
+cps-sentinel validate --config config/default.yaml
+```
+
+Run the Phase 1 nanogrid simulator:
+
+```bash
+cps-sentinel simulate \
+  --config config/default.yaml \
+  --output data/simulated/baseline.csv \
+  --plot reports/figures/baseline.html
 ```
 
 Run the dashboard:
@@ -52,6 +61,12 @@ streamlit run app/streamlit_app.py
 Raw and processed datasets are excluded from Git. In particular, iTrust datasets must not
 be redistributed. See the README files under `data/raw/` for provenance and handling rules.
 
-## Status
+## Simulator conventions
 
-Phase 0 — repository and engineering foundation.
+- Battery power is positive for discharge and negative for charge.
+- Grid power is positive for import and negative for export.
+- `battery_soc` is the end-of-timestep state of charge.
+- Each row satisfies `PV + battery + grid - load = 0`, up to floating-point tolerance.
+
+See [the Phase 1 simulator specification](docs/phase-1-simulator.md) for the physical model,
+controller behavior, outputs, and acceptance criteria.

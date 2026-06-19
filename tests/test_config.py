@@ -13,6 +13,8 @@ def test_default_configuration_loads() -> None:
     assert settings.project_name == "CPS Sentinel"
     assert settings.random_seed == 42
     assert settings.simulation.duration_hours == 24
+    assert settings.simulation.start_time.utcoffset() is not None
+    assert settings.simulation.profiles.pv_peak_kw == 6.0
     assert settings.simulation.battery.minimum_soc < settings.simulation.battery.maximum_soc
 
 
@@ -29,8 +31,16 @@ project:
   name: Test
   random_seed: 1
 simulation:
+  start_time: "2026-01-01T00:00:00+00:00"
   duration_hours: 1
   timestep_minutes: 5
+  profiles:
+    pv_peak_kw: 6
+    pv_variability_fraction: 0.1
+    load_base_kw: 1
+    load_morning_peak_kw: 1
+    load_evening_peak_kw: 1
+    load_noise_std_kw: 0.1
   battery:
     capacity_kwh: 10
     initial_soc: 0.5

@@ -1,0 +1,35 @@
+from pathlib import Path
+
+import pandas as pd
+
+from cps_sentinel.__main__ import main
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_validate_command() -> None:
+    exit_code = main(["validate", "--config", str(ROOT / "config" / "default.yaml")])
+
+    assert exit_code == 0
+
+
+def test_simulate_command_writes_csv(tmp_path: Path) -> None:
+    output = tmp_path / "simulation.csv"
+    plot = tmp_path / "simulation.html"
+
+    exit_code = main(
+        [
+            "simulate",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--output",
+            str(output),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    assert exit_code == 0
+    assert output.is_file()
+    assert plot.is_file()
+    assert len(pd.read_csv(output)) == 288

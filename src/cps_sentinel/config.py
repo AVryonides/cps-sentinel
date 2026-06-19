@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -25,9 +26,21 @@ class BatteryConfig:
 
 
 @dataclass(frozen=True)
+class ProfileConfig:
+    pv_peak_kw: float
+    pv_variability_fraction: float
+    load_base_kw: float
+    load_morning_peak_kw: float
+    load_evening_peak_kw: float
+    load_noise_std_kw: float
+
+
+@dataclass(frozen=True)
 class SimulationConfig:
+    start_time: datetime
     duration_hours: int
     timestep_minutes: int
+    profiles: ProfileConfig
     battery: BatteryConfig
 
 
@@ -60,9 +73,8 @@ def load_settings(path: str | Path) -> Settings:
     if not isinstance(project, dict) or not isinstance(simulation, dict):
         raise ConfigurationError("Project and simulation sections must be mappings")
 
-    battery = _require(simulation, "battery", "simulation")
-    if not isinstance(battery, dict):
-        raise ConfigurationError("simulation.battery must be a mapping")
+    battery = _require_mapping(simulation, "battery", "simulation")
+    profiles = _require_mapping(simulation, "profiles", "simulation")
 
     battery_config = BatteryConfig(
         capacity_kwh=float(_require(battery, "capacity_kwh", "simulation.battery")),
@@ -70,18 +82,40 @@ def load_settings(path: str | Path) -> Settings:
         minimum_soc=float(_require(battery, "minimum_soc", "simulation.battery")),
         maximum_soc=float(_require(battery, "maximum_soc", "simulation.battery")),
         maximum_power_kw=float(_require(battery, "maximum_power_kw", "simulation.battery")),
-        charge_efficiency=float(
-            _require(battery, "charge_efficiency", "simulation.battery")
-        ),
-        discharge_efficiency=float(
-            _require(battery, "discharge_efficiency", "simulation.battery")
-        ),
+        charge_efficiency=float(_require(battery, "charge_efficiency", "simulation.battery")),
+        discharge_efficiency=float(_require(battery, "discharge_efficiency", "simulation.battery")),
     )
     _validate_battery(battery_config)
 
+    profile_config = ProfileConfig(
+        pv_peak_kw=float(_require(profiles, "pv_peak_kw", "simulation.profiles")),
+        pv_variability_fraction=float(
+            _require(profiles, "pv_variability_fraction", "simulation.profiles")
+        ),
+        load_base_kw=float(_require(profiles, "load_base_kw", "simulation.profiles")),
+        load_morning_peak_kw=float(
+            _require(profiles, "load_morning_peak_kw", "simulation.profiles")
+        ),
+        load_evening_peak_kw=float(
+            _require(profiles, "load_evening_peak_kw", "simulation.profiles")
+        ),
+        load_noise_std_kw=float(_require(profiles, "load_noise_std_kw", "simulation.profiles")),
+    )
+    _validate_profiles(profile_config)
+
+    start_time_raw = str(_require(simulation, "start_time", "simulation"))
+    try:
+        start_time = datetime.fromisoformat(start_time_raw)
+    except ValueError as exc:
+        raise ConfigurationError("simulation.start_time must be an ISO-8601 timestamp") from exc
+    if start_time.tzinfo is None:
+        raise ConfigurationError("simulation.start_time must include a UTC offset")
+
     simulation_config = SimulationConfig(
+        start_time=start_time,
         duration_hours=int(_require(simulation, "duration_hours", "simulation")),
         timestep_minutes=int(_require(simulation, "timestep_minutes", "simulation")),
+        profiles=profile_config,
         battery=battery_config,
     )
     if simulation_config.duration_hours <= 0 or simulation_config.timestep_minutes <= 0:
@@ -103,3 +137,25 @@ def _validate_battery(config: BatteryConfig) -> None:
         raise ConfigurationError("Initial SOC must be within configured limits")
     if not 0 < config.charge_efficiency <= 1 or not 0 < config.discharge_efficiency <= 1:
         raise ConfigurationError("Battery efficiencies must be in the interval (0, 1]")
+
+
+def _validate_profiles(config: ProfileConfig) -> None:
+    values = (
+        config.pv_peak_kw,
+        config.pv_variability_fraction,
+        config.load_base_kw,
+        config.load_morning_peak_kw,
+        config.load_evening_peak_kw,
+        config.load_noise_std_kw,
+    )
+    if any(value < 0 for value in values):
+        raise ConfigurationError("Simulation profile parameters cannot be negative")
+    if config.load_base_kw <= 0:
+        raise ConfigurationError("simulation.profiles.load_base_kw must be positive")
+
+
+def _require_mapping(mapping: dict[str, Any], key: str, section: str) -> dict[str, Any]:
+    value = _require(mapping, key, section)
+    if not isinstance(value, dict):
+        raise ConfigurationError(f"{section}.{key} must be a mapping")
+    return value

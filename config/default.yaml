@@ -3,8 +3,16 @@ project:
   random_seed: 42
 
 simulation:
+  start_time: "2026-01-01T00:00:00+00:00"
   duration_hours: 24
   timestep_minutes: 5
+  profiles:
+    pv_peak_kw: 6.0
+    pv_variability_fraction: 0.08
+    load_base_kw: 1.4
+    load_morning_peak_kw: 1.3
+    load_evening_peak_kw: 2.4
+    load_noise_std_kw: 0.10
   battery:
     capacity_kwh: 10.0
     initial_soc: 0.50
