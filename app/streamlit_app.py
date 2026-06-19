@@ -14,11 +14,11 @@ st.title("CPS Sentinel")
 st.caption("Digital Twin-Based Security and Health Monitoring for Cyber-Physical Systems")
 
 left, middle, right = st.columns(3)
-left.metric("Project phase", "0 — Foundation")
+left.metric("Project phase", "1 - Nanogrid simulator")
 middle.metric("Simulation horizon", f"{SETTINGS.simulation.duration_hours} hours")
 right.metric("Timestep", f"{SETTINGS.simulation.timestep_minutes} minutes")
 
 st.info(
-    "The engineering foundation is ready. Phase 1 will add the reproducible smart-nanogrid "
-    "simulation and its first physics-based invariants."
+    "The deterministic smart-nanogrid simulator is available from the command line. "
+    "A later dashboard phase will add scenario controls and interactive attack analysis."
 )
