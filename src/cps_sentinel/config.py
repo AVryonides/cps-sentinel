@@ -45,10 +45,22 @@ class SimulationConfig:
 
 
 @dataclass(frozen=True)
+class DetectionConfig:
+    robust_z_threshold: float
+    calibration_quantile: float
+    physics_min_votes: int
+    ml_score_percentile: float
+    persistence_window: int
+    persistence_votes: int
+    isolation_estimators: int
+
+
+@dataclass(frozen=True)
 class Settings:
     project_name: str
     random_seed: int
     simulation: SimulationConfig
+    detection: DetectionConfig
 
 
 def _require(mapping: dict[str, Any], key: str, section: str) -> Any:
@@ -70,8 +82,13 @@ def load_settings(path: str | Path) -> Settings:
 
     project = _require(raw, "project", "root")
     simulation = _require(raw, "simulation", "root")
-    if not isinstance(project, dict) or not isinstance(simulation, dict):
-        raise ConfigurationError("Project and simulation sections must be mappings")
+    detection = _require(raw, "detection", "root")
+    if (
+        not isinstance(project, dict)
+        or not isinstance(simulation, dict)
+        or not isinstance(detection, dict)
+    ):
+        raise ConfigurationError("Project, simulation, and detection sections must be mappings")
 
     battery = _require_mapping(simulation, "battery", "simulation")
     profiles = _require_mapping(simulation, "profiles", "simulation")
@@ -121,10 +138,22 @@ def load_settings(path: str | Path) -> Settings:
     if simulation_config.duration_hours <= 0 or simulation_config.timestep_minutes <= 0:
         raise ConfigurationError("Simulation duration and timestep must be positive")
 
+    detection_config = DetectionConfig(
+        robust_z_threshold=float(_require(detection, "robust_z_threshold", "detection")),
+        calibration_quantile=float(_require(detection, "calibration_quantile", "detection")),
+        physics_min_votes=int(_require(detection, "physics_min_votes", "detection")),
+        ml_score_percentile=float(_require(detection, "ml_score_percentile", "detection")),
+        persistence_window=int(_require(detection, "persistence_window", "detection")),
+        persistence_votes=int(_require(detection, "persistence_votes", "detection")),
+        isolation_estimators=int(_require(detection, "isolation_estimators", "detection")),
+    )
+    _validate_detection(detection_config)
+
     return Settings(
         project_name=str(_require(project, "name", "project")),
         random_seed=int(_require(project, "random_seed", "project")),
         simulation=simulation_config,
+        detection=detection_config,
     )
 
 
@@ -159,3 +188,20 @@ def _require_mapping(mapping: dict[str, Any], key: str, section: str) -> dict[st
     if not isinstance(value, dict):
         raise ConfigurationError(f"{section}.{key} must be a mapping")
     return value
+
+
+def _validate_detection(config: DetectionConfig) -> None:
+    if config.robust_z_threshold <= 0:
+        raise ConfigurationError("detection.robust_z_threshold must be positive")
+    if not 0 < config.calibration_quantile < 1:
+        raise ConfigurationError("detection.calibration_quantile must be between 0 and 1")
+    if not 0 < config.ml_score_percentile < 1:
+        raise ConfigurationError("detection.ml_score_percentile must be between 0 and 1")
+    if config.physics_min_votes <= 0:
+        raise ConfigurationError("detection.physics_min_votes must be positive")
+    if config.persistence_window <= 0:
+        raise ConfigurationError("detection.persistence_window must be positive")
+    if not 0 < config.persistence_votes <= config.persistence_window:
+        raise ConfigurationError("detection.persistence_votes must be within the window")
+    if config.isolation_estimators < 10:
+        raise ConfigurationError("detection.isolation_estimators must be at least 10")

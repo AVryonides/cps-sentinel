@@ -69,6 +69,17 @@ cps-sentinel scenario \
   --plot reports/figures/pv-fdi.html
 ```
 
+Run Phase 4 hybrid detection and diagnosis:
+
+```bash
+cps-sentinel detect \
+  --config config/default.yaml \
+  --scenario config/scenarios/pv-false-data-injection.yaml \
+  --output data/simulated/pv-fdi-detection.csv \
+  --events data/simulated/pv-fdi-events.json \
+  --plot reports/figures/pv-fdi-detection.html
+```
+
 Run the dashboard:
 
 ```bash
@@ -110,3 +121,13 @@ boundary, output schema, residual definitions, and acceptance criteria.
 
 See [the Phase 3 scenario specification](docs/phase-3-scenarios.md) and the reproducible YAML
 examples under [`config/scenarios`](config/scenarios).
+
+## Detection conventions
+
+- Robust physics thresholds and Isolation Forest are fitted only on clean baseline data.
+- Scenario labels are withheld from detection and used only afterward for evaluation.
+- Temporal persistence suppresses isolated flags before diagnosis and event aggregation.
+- Diagnoses are coarse, evidence-backed component hypotheses rather than ground-truth copies.
+
+See [the Phase 4 detection specification](docs/phase-4-detection.md) for feature calibration,
+hybrid scoring, diagnosis rules, evaluation metrics, and current limitations.

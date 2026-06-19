@@ -64,5 +64,5 @@ strict = true
 packages = ["cps_sentinel"]
 
 [[tool.mypy.overrides]]
-module = ["plotly", "plotly.*"]
+module = ["plotly", "plotly.*", "sklearn", "sklearn.*"]
 ignore_missing_imports = true

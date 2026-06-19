@@ -23,5 +23,10 @@ simulation:
     discharge_efficiency: 0.95
 
 detection:
-  residual_window: 12
-  residual_z_threshold: 3.0
+  robust_z_threshold: 3.5
+  calibration_quantile: 0.995
+  physics_min_votes: 1
+  ml_score_percentile: 0.995
+  persistence_window: 3
+  persistence_votes: 2
+  isolation_estimators: 200

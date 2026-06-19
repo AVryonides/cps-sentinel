@@ -10,6 +10,13 @@ from pathlib import Path
 import pandas as pd
 
 from cps_sentinel.config import load_settings
+from cps_sentinel.detection import (
+    HybridDetector,
+    aggregate_events,
+    evaluate_detection,
+    write_events,
+)
+from cps_sentinel.detection.plotting import write_detection_plot
 from cps_sentinel.scenarios import load_scenario, summarize_scenario
 from cps_sentinel.scenarios.plotting import write_scenario_plot
 from cps_sentinel.simulation import run_simulation, summarize_simulation
@@ -53,6 +60,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination labeled CSV path",
     )
     scenario.add_argument("--plot", help="Optional destination for an interactive HTML plot")
+
+    detect = commands.add_parser("detect", help="Run Phase 4 hybrid detection and diagnosis")
+    detect.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    detect.add_argument("--scenario", required=True, help="Path to scenario YAML")
+    detect.add_argument(
+        "--output",
+        default="data/simulated/detection.csv",
+        help="Destination row-level detection CSV",
+    )
+    detect.add_argument(
+        "--events",
+        default="data/simulated/events.json",
+        help="Destination aggregated event JSON",
+    )
+    detect.add_argument("--plot", help="Optional destination for an interactive HTML plot")
     return parser
 
 
@@ -132,6 +154,37 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{scenario_summary.active_action_disagreement_rate:.1%}"
         )
         print(f"Labeled output: {output}")
+        return 0
+
+    if args.command == "detect":
+        total_steps = (
+            settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes
+        )
+        scenario_spec = load_scenario(args.scenario, total_steps)
+        normal_twin = run_digital_twin(settings, run_simulation(settings))
+        scenario_twin = run_digital_twin(settings, run_simulation(settings, scenario_spec))
+        detector = HybridDetector(settings.detection, settings.random_seed).fit(normal_twin)
+        frame = detector.detect(scenario_twin)
+
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_csv(output, index=False)
+        events = aggregate_events(frame)
+        events_path = write_events(events, args.events)
+        if args.plot:
+            plot_path = write_detection_plot(frame, args.plot)
+            print(f"Interactive plot: {plot_path}")
+        evaluation = evaluate_detection(frame)
+        print(f"Detection complete: {scenario_spec.name}")
+        print(f"Precision: {evaluation.precision:.3f}")
+        print(f"Recall: {evaluation.recall:.3f}")
+        print(f"F1: {evaluation.f1:.3f}")
+        print(f"False-positive rate: {evaluation.false_positive_rate:.3f}")
+        print(f"Event detected: {evaluation.event_detected}")
+        print(f"Detection delay: {evaluation.detection_delay_steps} steps")
+        print(f"Aggregated events: {len(events)}")
+        print(f"Row-level output: {output}")
+        print(f"Event output: {events_path}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes
