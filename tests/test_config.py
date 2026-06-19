@@ -16,6 +16,7 @@ def test_default_configuration_loads() -> None:
     assert settings.simulation.start_time.utcoffset() is not None
     assert settings.simulation.profiles.pv_peak_kw == 6.0
     assert settings.simulation.battery.minimum_soc < settings.simulation.battery.maximum_soc
+    assert settings.detection.physics_min_votes == 1
 
 
 def test_missing_configuration_is_rejected(tmp_path: Path) -> None:
@@ -49,6 +50,14 @@ simulation:
     maximum_power_kw: 5
     charge_efficiency: 0.95
     discharge_efficiency: 0.95
+detection:
+  robust_z_threshold: 3.5
+  calibration_quantile: 0.995
+  physics_min_votes: 1
+  ml_score_percentile: 0.995
+  persistence_window: 3
+  persistence_votes: 2
+  isolation_estimators: 200
 """,
         encoding="utf-8",
     )

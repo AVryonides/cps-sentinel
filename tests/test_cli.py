@@ -82,3 +82,32 @@ def test_scenario_command_writes_labeled_csv_and_plot(tmp_path: Path) -> None:
     assert plot.is_file()
     assert frame["scenario_active"].sum() == 36
     assert set(frame.loc[frame["scenario_active"], "ground_truth_label"]) == {"attack"}
+
+
+def test_detect_command_writes_scored_csv_events_and_plot(tmp_path: Path) -> None:
+    output = tmp_path / "detection.csv"
+    events = tmp_path / "events.json"
+    plot = tmp_path / "detection.html"
+
+    exit_code = main(
+        [
+            "detect",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scenario",
+            str(ROOT / "config" / "scenarios" / "pv-false-data-injection.yaml"),
+            "--output",
+            str(output),
+            "--events",
+            str(events),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert events.is_file()
+    assert plot.is_file()
+    assert frame["detected"].sum() > 0
+    assert "likely_event" in frame
