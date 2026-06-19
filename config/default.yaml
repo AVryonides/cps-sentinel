@@ -1,0 +1,19 @@
+project:
+  name: CPS Sentinel
+  random_seed: 42
+
+simulation:
+  duration_hours: 24
+  timestep_minutes: 5
+  battery:
+    capacity_kwh: 10.0
+    initial_soc: 0.50
+    minimum_soc: 0.10
+    maximum_soc: 0.90
+    maximum_power_kw: 5.0
+    charge_efficiency: 0.95
+    discharge_efficiency: 0.95
+
+detection:
+  residual_window: 12
+  residual_z_threshold: 3.0
