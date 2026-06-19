@@ -59,6 +59,16 @@ cps-sentinel twin \
   --plot reports/figures/twin-baseline.html
 ```
 
+Run a Phase 3 closed-loop attack scenario:
+
+```bash
+cps-sentinel scenario \
+  --config config/default.yaml \
+  --scenario config/scenarios/pv-false-data-injection.yaml \
+  --output data/simulated/pv-fdi.csv \
+  --plot reports/figures/pv-fdi.html
+```
+
 Run the dashboard:
 
 ```bash
@@ -89,3 +99,14 @@ controller behavior, outputs, and acceptance criteria.
 
 See [the Phase 2 digital-twin specification](docs/phase-2-digital-twin.md) for the model
 boundary, output schema, residual definitions, and acceptance criteria.
+
+## Scenario conventions
+
+- Scenarios are injected inside the closed control loop, before physical behavior is solved.
+- Sensor attacks alter controller inputs; command attacks alter the battery command path.
+- Physical faults alter effective battery parameters only during the labeled window.
+- Scenario CSVs contain true values, reported values, commands, physical outputs, twin
+  expectations, residuals, and exact ground-truth labels.
+
+See [the Phase 3 scenario specification](docs/phase-3-scenarios.md) and the reproducible YAML
+examples under [`config/scenarios`](config/scenarios).

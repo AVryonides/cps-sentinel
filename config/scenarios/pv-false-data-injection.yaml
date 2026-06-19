@@ -1,0 +1,6 @@
+name: PV sensor false-data injection
+kind: false_data_injection
+target: pv_sensor
+start_step: 120
+duration_steps: 36
+intensity: 0.60

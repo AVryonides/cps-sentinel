@@ -1,0 +1,6 @@
+name: Battery efficiency degradation
+kind: battery_efficiency_loss
+target: battery
+start_step: 96
+duration_steps: 96
+intensity: 0.25

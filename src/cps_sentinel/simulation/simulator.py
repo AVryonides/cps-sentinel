@@ -7,8 +7,9 @@ from dataclasses import dataclass
 import pandas as pd
 
 from cps_sentinel.config import Settings
+from cps_sentinel.scenarios import ScenarioRuntime, ScenarioSpec
 from cps_sentinel.simulation.battery import BatteryModel
-from cps_sentinel.simulation.controller import dispatch_power
+from cps_sentinel.simulation.controller import classify_action
 from cps_sentinel.simulation.profiles import generate_profiles
 
 
@@ -22,43 +23,70 @@ class SimulationSummary:
     maximum_balance_error_kw: float
 
 
-def run_simulation(settings: Settings) -> pd.DataFrame:
+def run_simulation(settings: Settings, scenario: ScenarioSpec | None = None) -> pd.DataFrame:
     """Run a deterministic nanogrid simulation from validated settings."""
-    return simulate_profiles(settings, generate_profiles(settings))
+    return simulate_profiles(settings, generate_profiles(settings), scenario)
 
 
-def simulate_profiles(settings: Settings, profiles: pd.DataFrame) -> pd.DataFrame:
+def simulate_profiles(
+    settings: Settings,
+    profiles: pd.DataFrame,
+    scenario: ScenarioSpec | None = None,
+) -> pd.DataFrame:
     """Apply the nanogrid physics and controller to an aligned profile frame."""
     required_columns = {"timestamp", "pv_kw", "load_kw"}
     missing = required_columns.difference(profiles.columns)
     if missing:
         raise ValueError(f"Profile frame is missing columns: {sorted(missing)}")
 
-    battery = BatteryModel(settings.simulation.battery)
+    if scenario:
+        scenario.validate(len(profiles))
+    runtime = ScenarioRuntime(scenario)
     timestep_hours = settings.simulation.timestep_minutes / 60
     soc = settings.simulation.battery.initial_soc
     records: list[dict[str, object]] = []
 
-    for timestamp, pv_kw_raw, load_kw_raw in profiles.itertuples(index=False, name=None):
-        pv_kw = float(pv_kw_raw)
-        load_kw = float(load_kw_raw)
+    for step, (timestamp, pv_kw_raw, load_kw_raw) in enumerate(
+        profiles.itertuples(index=False, name=None)
+    ):
+        true_pv_kw = float(pv_kw_raw)
+        true_load_kw = float(load_kw_raw)
+        pv_kw, load_kw = runtime.sensor_values(step, true_pv_kw, true_load_kw)
         soc_start = soc
-        decision = dispatch_power(pv_kw, load_kw, soc, timestep_hours, battery)
-        soc = decision.next_soc
-        balance_error_kw = pv_kw + decision.battery_power_kw + decision.grid_power_kw - load_kw
+        nominal_command_kw = load_kw - pv_kw
+        commanded_power_kw = runtime.battery_command(step, nominal_command_kw)
+        effective_battery_config = runtime.battery_config(step, settings.simulation.battery)
+        battery_step = BatteryModel(effective_battery_config).step(
+            commanded_power_kw, soc, timestep_hours
+        )
+        soc = battery_step.next_soc
+        grid_power_kw = true_load_kw - true_pv_kw - battery_step.actual_power_kw
+        balance_error_kw = true_pv_kw + battery_step.actual_power_kw + grid_power_kw - true_load_kw
+        measurement_balance_error_kw = (
+            pv_kw + battery_step.actual_power_kw + grid_power_kw - load_kw
+        )
+        metadata = runtime.metadata(step)
         records.append(
             {
                 "timestamp": timestamp,
+                "true_pv_kw": true_pv_kw,
+                "true_load_kw": true_load_kw,
                 "pv_kw": pv_kw,
                 "load_kw": load_kw,
                 "battery_soc_start": soc_start,
                 "battery_soc": soc,
-                "requested_battery_power_kw": decision.requested_battery_power_kw,
-                "battery_power_kw": decision.battery_power_kw,
-                "grid_power_kw": decision.grid_power_kw,
-                "controller_action": decision.controller_action,
+                "requested_battery_power_kw": nominal_command_kw,
+                "commanded_battery_power_kw": commanded_power_kw,
+                "battery_power_kw": battery_step.actual_power_kw,
+                "grid_power_kw": grid_power_kw,
+                "controller_action": classify_action(battery_step.actual_power_kw, grid_power_kw),
                 "power_balance_error_kw": balance_error_kw,
+                "measurement_balance_error_kw": measurement_balance_error_kw,
                 "system_state": _system_state(soc, settings),
+                "effective_battery_capacity_kwh": effective_battery_config.capacity_kwh,
+                "effective_charge_efficiency": effective_battery_config.charge_efficiency,
+                "effective_discharge_efficiency": effective_battery_config.discharge_efficiency,
+                **metadata,
             }
         )
 

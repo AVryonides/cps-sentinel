@@ -1,0 +1,6 @@
+name: PV sensor replay attack
+kind: replay_attack
+target: pv_sensor
+start_step: 132
+duration_steps: 36
+replay_offset_steps: 24

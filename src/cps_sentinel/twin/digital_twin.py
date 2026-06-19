@@ -53,9 +53,8 @@ def run_digital_twin(settings: Settings, observed: pd.DataFrame) -> pd.DataFrame
 
     expected = simulate_profiles(settings, reference).rename(columns=EXPECTED_NAMES)
     combined = observed.reset_index(drop=True).copy()
-    for column in expected.columns:
-        if column != "timestamp":
-            combined[column] = expected[column].to_numpy()
+    for column in EXPECTED_NAMES.values():
+        combined[column] = expected[column].to_numpy()
 
     combined["pv_residual_kw"] = combined["pv_kw"] - combined["expected_pv_kw"]
     combined["load_residual_kw"] = combined["load_kw"] - combined["expected_load_kw"]

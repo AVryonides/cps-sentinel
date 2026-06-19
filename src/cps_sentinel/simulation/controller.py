@@ -39,11 +39,12 @@ def dispatch_power(
         battery_power_kw=battery_step.actual_power_kw,
         grid_power_kw=grid_power_kw,
         next_soc=battery_step.next_soc,
-        controller_action=_classify_action(battery_step.actual_power_kw, grid_power_kw),
+        controller_action=classify_action(battery_step.actual_power_kw, grid_power_kw),
     )
 
 
-def _classify_action(battery_power_kw: float, grid_power_kw: float) -> str:
+def classify_action(battery_power_kw: float, grid_power_kw: float) -> str:
+    """Describe the delivered battery and physical-grid operating combination."""
     tolerance = 1e-9
     if battery_power_kw > tolerance and grid_power_kw > tolerance:
         return "discharge_and_import"
