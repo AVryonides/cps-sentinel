@@ -10,6 +10,8 @@ NASA battery data will provide an external health-prognostics validation track. 
 SWaT dataset will provide a separate industrial attack-detection validation track. These
 tracks share evaluation and alert interfaces; they are not treated as one physical system.
 
+[View the overall architecture as a PDF](output/pdf/cps-sentinel-overall-architecture.pdf).
+
 ## Planned vertical slice
 
 1. Simulate PV generation, load, battery state of charge, and grid exchange.
