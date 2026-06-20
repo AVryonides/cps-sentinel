@@ -111,3 +111,31 @@ def test_detect_command_writes_scored_csv_events_and_plot(tmp_path: Path) -> Non
     assert plot.is_file()
     assert frame["detected"].sum() > 0
     assert "likely_event" in frame
+
+
+def test_assess_command_writes_detection_alerts_and_risk_plot(tmp_path: Path) -> None:
+    output = tmp_path / "assessment.csv"
+    alerts = tmp_path / "alerts.json"
+    plot = tmp_path / "risk.html"
+
+    exit_code = main(
+        [
+            "assess",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scenario",
+            str(ROOT / "config" / "scenarios" / "pv-false-data-injection.yaml"),
+            "--output",
+            str(output),
+            "--alerts",
+            str(alerts),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert alerts.is_file()
+    assert plot.is_file()
+    assert frame["detected"].sum() > 0

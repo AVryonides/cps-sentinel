@@ -14,11 +14,11 @@ st.title("CPS Sentinel")
 st.caption("Digital Twin-Based Security and Health Monitoring for Cyber-Physical Systems")
 
 left, middle, right = st.columns(3)
-left.metric("Project phase", "4 - Detection and diagnosis")
+left.metric("Project phase", "5 - Risk and response")
 middle.metric("Simulation horizon", f"{SETTINGS.simulation.duration_hours} hours")
 right.metric("Timestep", f"{SETTINGS.simulation.timestep_minutes} minutes")
 
 st.info(
-    "Hybrid physics-aware and statistical detection is available from the command line. "
-    "A later dashboard phase will expose detection evidence interactively."
+    "Risk-ranked alerts now combine detector confidence, physical impact, persistence, and "
+    "battery safety-margin proximity. Recommendations remain advisory and operator-confirmed."
 )
