@@ -1,10 +1,31 @@
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+from scipy.io import savemat
 
 from cps_sentinel.__main__ import main
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _write_battery_mat(path: Path, capacities: list[float]) -> None:
+    cycles: list[dict[str, object]] = []
+    for index, capacity in enumerate(capacities, start=1):
+        cycles.append(
+            {
+                "type": "discharge",
+                "ambient_temperature": 24.0,
+                "time": np.array([2026, 1, 1, index // 60, index % 60, 0]),
+                "data": {
+                    "Voltage_measured": np.array([4.1, 3.6, 2.7]),
+                    "Temperature_measured": np.array([24.0, 28.0, 31.0]),
+                    "Time": np.array([0.0, 900.0, 1800.0]),
+                    "Capacity": capacity,
+                },
+            }
+        )
+    savemat(path, {path.stem: {"cycle": np.array(cycles, dtype=object)}})
 
 
 def test_validate_command() -> None:
@@ -139,3 +160,34 @@ def test_assess_command_writes_detection_alerts_and_risk_plot(tmp_path: Path) ->
     assert alerts.is_file()
     assert plot.is_file()
     assert frame["detected"].sum() > 0
+
+
+def test_health_command_writes_cycle_health_alerts_and_plot(tmp_path: Path) -> None:
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    _write_battery_mat(raw / "BTEST.mat", list(np.linspace(1.95, 1.30, 100)))
+    output = tmp_path / "health.csv"
+    alerts = tmp_path / "health-alerts.json"
+    plot = tmp_path / "health.html"
+
+    exit_code = main(
+        [
+            "health",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--input",
+            str(raw),
+            "--output",
+            str(output),
+            "--alerts",
+            str(alerts),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert alerts.is_file()
+    assert plot.is_file()
+    assert "estimated_rul_cycles" in frame

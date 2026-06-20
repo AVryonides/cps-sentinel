@@ -42,3 +42,11 @@ risk:
   medium_threshold: 30.0
   high_threshold: 55.0
   critical_threshold: 80.0
+
+health:
+  rated_capacity_ah: 2.0
+  end_of_life_capacity_ah: 1.4
+  warning_soh_fraction: 0.80
+  critical_soh_fraction: 0.70
+  minimum_regression_cycles: 20
+  regression_window_cycles: 60

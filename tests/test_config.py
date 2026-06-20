@@ -18,6 +18,7 @@ def test_default_configuration_loads() -> None:
     assert settings.simulation.battery.minimum_soc < settings.simulation.battery.maximum_soc
     assert settings.detection.physics_min_votes == 1
     assert settings.risk.impact_weight == 0.40
+    assert settings.health.end_of_life_capacity_ah == 1.4
 
 
 def test_missing_configuration_is_rejected(tmp_path: Path) -> None:
@@ -70,6 +71,13 @@ risk:
   medium_threshold: 30
   high_threshold: 55
   critical_threshold: 80
+health:
+  rated_capacity_ah: 2.0
+  end_of_life_capacity_ah: 1.4
+  warning_soh_fraction: 0.80
+  critical_soh_fraction: 0.70
+  minimum_regression_cycles: 20
+  regression_window_cycles: 60
 """,
         encoding="utf-8",
     )

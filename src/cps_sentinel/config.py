@@ -70,12 +70,23 @@ class RiskConfig:
 
 
 @dataclass(frozen=True)
+class HealthConfig:
+    rated_capacity_ah: float
+    end_of_life_capacity_ah: float
+    warning_soh_fraction: float
+    critical_soh_fraction: float
+    minimum_regression_cycles: int
+    regression_window_cycles: int
+
+
+@dataclass(frozen=True)
 class Settings:
     project_name: str
     random_seed: int
     simulation: SimulationConfig
     detection: DetectionConfig
     risk: RiskConfig
+    health: HealthConfig
 
 
 def _require(mapping: dict[str, Any], key: str, section: str) -> Any:
@@ -99,14 +110,16 @@ def load_settings(path: str | Path) -> Settings:
     simulation = _require(raw, "simulation", "root")
     detection = _require(raw, "detection", "root")
     risk = _require(raw, "risk", "root")
+    health = _require(raw, "health", "root")
     if (
         not isinstance(project, dict)
         or not isinstance(simulation, dict)
         or not isinstance(detection, dict)
         or not isinstance(risk, dict)
+        or not isinstance(health, dict)
     ):
         raise ConfigurationError(
-            "Project, simulation, detection, and risk sections must be mappings"
+            "Project, simulation, detection, risk, and health sections must be mappings"
         )
 
     battery = _require_mapping(simulation, "battery", "simulation")
@@ -182,12 +195,23 @@ def load_settings(path: str | Path) -> Settings:
     )
     _validate_risk(risk_config)
 
+    health_config = HealthConfig(
+        rated_capacity_ah=float(_require(health, "rated_capacity_ah", "health")),
+        end_of_life_capacity_ah=float(_require(health, "end_of_life_capacity_ah", "health")),
+        warning_soh_fraction=float(_require(health, "warning_soh_fraction", "health")),
+        critical_soh_fraction=float(_require(health, "critical_soh_fraction", "health")),
+        minimum_regression_cycles=int(_require(health, "minimum_regression_cycles", "health")),
+        regression_window_cycles=int(_require(health, "regression_window_cycles", "health")),
+    )
+    _validate_health(health_config)
+
     return Settings(
         project_name=str(_require(project, "name", "project")),
         random_seed=int(_require(project, "random_seed", "project")),
         simulation=simulation_config,
         detection=detection_config,
         risk=risk_config,
+        health=health_config,
     )
 
 
@@ -263,3 +287,19 @@ def _validate_risk(config: RiskConfig) -> None:
     )
     if not 0 <= thresholds[0] < thresholds[1] < thresholds[2] <= 100:
         raise ConfigurationError("risk thresholds must increase between 0 and 100")
+
+
+def _validate_health(config: HealthConfig) -> None:
+    if (
+        config.rated_capacity_ah <= 0
+        or not 0 < config.end_of_life_capacity_ah < config.rated_capacity_ah
+    ):
+        raise ConfigurationError("health capacity values must satisfy 0 < EOL < rated capacity")
+    if not 0 < config.critical_soh_fraction < config.warning_soh_fraction <= 1:
+        raise ConfigurationError("health SOH thresholds must satisfy 0 < critical < warning <= 1")
+    if config.minimum_regression_cycles < 2:
+        raise ConfigurationError("health.minimum_regression_cycles must be at least 2")
+    if config.regression_window_cycles < config.minimum_regression_cycles:
+        raise ConfigurationError(
+            "health regression window must include the minimum training cycles"
+        )

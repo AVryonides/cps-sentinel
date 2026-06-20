@@ -25,6 +25,7 @@ dependencies = [
   "plotly>=5.24,<7",
   "pyyaml>=6.0,<7",
   "scikit-learn>=1.5,<2",
+  "scipy>=1.10,<2",
 ]
 
 [project.optional-dependencies]
@@ -66,5 +67,5 @@ strict = true
 packages = ["cps_sentinel"]
 
 [[tool.mypy.overrides]]
-module = ["plotly", "plotly.*", "sklearn", "sklearn.*"]
+module = ["plotly", "plotly.*", "scipy", "scipy.*", "sklearn", "sklearn.*"]
 ignore_missing_imports = true

@@ -102,6 +102,21 @@ terminal. It provides selectable attack and fault scenarios, plain-language inci
 physical-system versus digital-twin evidence, evaluation metrics, risk-ranked alerts, and
 operator-confirmed response recommendations.
 
+Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
+
+```bash
+cps-sentinel health \
+  --config config/default.yaml \
+  --input data/raw/nasa/battery-aging-fy08q4 \
+  --output data/processed/nasa-battery-health.csv \
+  --alerts data/processed/nasa-health-alerts.json \
+  --plot reports/figures/nasa-battery-health.html
+```
+
+The health track extracts discharge capacity, calculates state of health, performs causal
+remaining-useful-life projection, evaluates predictions against observed end of life, and emits
+maintenance-oriented health alerts.
+
 ## Data policy
 
 Raw and processed datasets are excluded from Git. In particular, iTrust datasets must not
