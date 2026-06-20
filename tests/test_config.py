@@ -17,6 +17,7 @@ def test_default_configuration_loads() -> None:
     assert settings.simulation.profiles.pv_peak_kw == 6.0
     assert settings.simulation.battery.minimum_soc < settings.simulation.battery.maximum_soc
     assert settings.detection.physics_min_votes == 1
+    assert settings.risk.impact_weight == 0.40
 
 
 def test_missing_configuration_is_rejected(tmp_path: Path) -> None:
@@ -58,6 +59,17 @@ detection:
   persistence_window: 3
   persistence_votes: 2
   isolation_estimators: 200
+risk:
+  confidence_weight: 0.30
+  impact_weight: 0.40
+  duration_weight: 0.15
+  safety_proximity_weight: 0.15
+  grid_impact_reference_kw: 5
+  soc_divergence_reference: 0.20
+  duration_reference_steps: 36
+  medium_threshold: 30
+  high_threshold: 55
+  critical_threshold: 80
 """,
         encoding="utf-8",
     )

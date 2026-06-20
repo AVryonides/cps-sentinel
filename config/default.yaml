@@ -30,3 +30,15 @@ detection:
   persistence_window: 3
   persistence_votes: 2
   isolation_estimators: 200
+
+risk:
+  confidence_weight: 0.30
+  impact_weight: 0.40
+  duration_weight: 0.15
+  safety_proximity_weight: 0.15
+  grid_impact_reference_kw: 5.0
+  soc_divergence_reference: 0.20
+  duration_reference_steps: 36
+  medium_threshold: 30.0
+  high_threshold: 55.0
+  critical_threshold: 80.0

@@ -80,6 +80,17 @@ cps-sentinel detect \
   --plot reports/figures/pv-fdi-detection.html
 ```
 
+Run Phase 5 risk assessment and bounded response guidance:
+
+```bash
+cps-sentinel assess \
+  --config config/default.yaml \
+  --scenario config/scenarios/pv-false-data-injection.yaml \
+  --output data/simulated/pv-fdi-assessment.csv \
+  --alerts data/simulated/pv-fdi-alerts.json \
+  --plot reports/figures/pv-fdi-risk.html
+```
+
 Run the dashboard:
 
 ```bash
@@ -131,3 +142,13 @@ examples under [`config/scenarios`](config/scenarios).
 
 See [the Phase 4 detection specification](docs/phase-4-detection.md) for feature calibration,
 hybrid scoring, diagnosis rules, evaluation metrics, and current limitations.
+
+## Risk and response conventions
+
+- Event risk combines confidence, measured physical impact, duration, and proximity to SOC limits.
+- Alerts are ranked from highest to lowest risk and retain the evidence behind their diagnosis.
+- Recommended actions are bounded, reversible decision support—not autonomous actuation.
+- A qualified operator must confirm control changes and restoration of automatic operation.
+
+See [the Phase 5 risk-response specification](docs/phase-5-risk-response.md) for the score,
+impact metrics, response policy, safety boundary, and acceptance criteria.

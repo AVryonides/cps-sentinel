@@ -56,11 +56,26 @@ class DetectionConfig:
 
 
 @dataclass(frozen=True)
+class RiskConfig:
+    confidence_weight: float
+    impact_weight: float
+    duration_weight: float
+    safety_proximity_weight: float
+    grid_impact_reference_kw: float
+    soc_divergence_reference: float
+    duration_reference_steps: int
+    medium_threshold: float
+    high_threshold: float
+    critical_threshold: float
+
+
+@dataclass(frozen=True)
 class Settings:
     project_name: str
     random_seed: int
     simulation: SimulationConfig
     detection: DetectionConfig
+    risk: RiskConfig
 
 
 def _require(mapping: dict[str, Any], key: str, section: str) -> Any:
@@ -83,12 +98,16 @@ def load_settings(path: str | Path) -> Settings:
     project = _require(raw, "project", "root")
     simulation = _require(raw, "simulation", "root")
     detection = _require(raw, "detection", "root")
+    risk = _require(raw, "risk", "root")
     if (
         not isinstance(project, dict)
         or not isinstance(simulation, dict)
         or not isinstance(detection, dict)
+        or not isinstance(risk, dict)
     ):
-        raise ConfigurationError("Project, simulation, and detection sections must be mappings")
+        raise ConfigurationError(
+            "Project, simulation, detection, and risk sections must be mappings"
+        )
 
     battery = _require_mapping(simulation, "battery", "simulation")
     profiles = _require_mapping(simulation, "profiles", "simulation")
@@ -149,11 +168,26 @@ def load_settings(path: str | Path) -> Settings:
     )
     _validate_detection(detection_config)
 
+    risk_config = RiskConfig(
+        confidence_weight=float(_require(risk, "confidence_weight", "risk")),
+        impact_weight=float(_require(risk, "impact_weight", "risk")),
+        duration_weight=float(_require(risk, "duration_weight", "risk")),
+        safety_proximity_weight=float(_require(risk, "safety_proximity_weight", "risk")),
+        grid_impact_reference_kw=float(_require(risk, "grid_impact_reference_kw", "risk")),
+        soc_divergence_reference=float(_require(risk, "soc_divergence_reference", "risk")),
+        duration_reference_steps=int(_require(risk, "duration_reference_steps", "risk")),
+        medium_threshold=float(_require(risk, "medium_threshold", "risk")),
+        high_threshold=float(_require(risk, "high_threshold", "risk")),
+        critical_threshold=float(_require(risk, "critical_threshold", "risk")),
+    )
+    _validate_risk(risk_config)
+
     return Settings(
         project_name=str(_require(project, "name", "project")),
         random_seed=int(_require(project, "random_seed", "project")),
         simulation=simulation_config,
         detection=detection_config,
+        risk=risk_config,
     )
 
 
@@ -205,3 +239,27 @@ def _validate_detection(config: DetectionConfig) -> None:
         raise ConfigurationError("detection.persistence_votes must be within the window")
     if config.isolation_estimators < 10:
         raise ConfigurationError("detection.isolation_estimators must be at least 10")
+
+
+def _validate_risk(config: RiskConfig) -> None:
+    weights = (
+        config.confidence_weight,
+        config.impact_weight,
+        config.duration_weight,
+        config.safety_proximity_weight,
+    )
+    if any(weight < 0 for weight in weights) or abs(sum(weights) - 1.0) > 1e-9:
+        raise ConfigurationError("risk weights must be non-negative and sum to 1")
+    if (
+        config.grid_impact_reference_kw <= 0
+        or config.soc_divergence_reference <= 0
+        or config.duration_reference_steps <= 0
+    ):
+        raise ConfigurationError("risk reference values must be positive")
+    thresholds = (
+        config.medium_threshold,
+        config.high_threshold,
+        config.critical_threshold,
+    )
+    if not 0 <= thresholds[0] < thresholds[1] < thresholds[2] <= 100:
+        raise ConfigurationError("risk thresholds must increase between 0 and 100")

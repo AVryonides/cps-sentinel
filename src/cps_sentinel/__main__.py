@@ -17,6 +17,8 @@ from cps_sentinel.detection import (
     write_events,
 )
 from cps_sentinel.detection.plotting import write_detection_plot
+from cps_sentinel.risk import assess_events, write_alerts
+from cps_sentinel.risk.plotting import write_risk_plot
 from cps_sentinel.scenarios import load_scenario, summarize_scenario
 from cps_sentinel.scenarios.plotting import write_scenario_plot
 from cps_sentinel.simulation import run_simulation, summarize_simulation
@@ -75,6 +77,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination aggregated event JSON",
     )
     detect.add_argument("--plot", help="Optional destination for an interactive HTML plot")
+
+    assess = commands.add_parser("assess", help="Run Phase 5 risk assessment and response guidance")
+    assess.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    assess.add_argument("--scenario", required=True, help="Path to scenario YAML")
+    assess.add_argument(
+        "--output",
+        default="data/simulated/assessment.csv",
+        help="Destination row-level detection CSV",
+    )
+    assess.add_argument(
+        "--alerts",
+        default="data/simulated/alerts.json",
+        help="Destination prioritized alert JSON",
+    )
+    assess.add_argument("--plot", help="Optional destination for an interactive HTML plot")
     return parser
 
 
@@ -185,6 +202,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Aggregated events: {len(events)}")
         print(f"Row-level output: {output}")
         print(f"Event output: {events_path}")
+        return 0
+
+    if args.command == "assess":
+        total_steps = (
+            settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes
+        )
+        scenario_spec = load_scenario(args.scenario, total_steps)
+        normal_twin = run_digital_twin(settings, run_simulation(settings))
+        scenario_twin = run_digital_twin(settings, run_simulation(settings, scenario_spec))
+        detector = HybridDetector(settings.detection, settings.random_seed).fit(normal_twin)
+        frame = detector.detect(scenario_twin)
+
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_csv(output, index=False)
+        alerts = assess_events(frame, aggregate_events(frame), settings)
+        alerts_path = write_alerts(alerts, args.alerts)
+        if args.plot:
+            plot_path = write_risk_plot(frame, alerts, settings.simulation.battery, args.plot)
+            print(f"Interactive risk report: {plot_path}")
+        print(f"Risk assessment complete: {scenario_spec.name}")
+        print(f"Prioritized alerts: {len(alerts)}")
+        for alert in alerts:
+            print(
+                f"#{alert.priority} {alert.alert_id}: {alert.risk_level.upper()} "
+                f"({alert.risk_score:.1f}/100) - {alert.likely_event}"
+            )
+            print(f"  Recommended first action: {alert.recommended_actions[0]}")
+        print(f"Row-level output: {output}")
+        print(f"Alert output: {alerts_path}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes
