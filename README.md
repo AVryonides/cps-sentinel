@@ -97,9 +97,10 @@ Run the dashboard:
 python app/nicegui_app.py
 ```
 
-Open `http://localhost:8080`. The dashboard provides selectable attack and fault scenarios,
-plain-language incident explanations, physical-system versus digital-twin evidence, evaluation
-metrics, risk-ranked alerts, and operator-confirmed response recommendations.
+The dashboard opens automatically at `http://localhost:8080` and also prints the address in the
+terminal. It provides selectable attack and fault scenarios, plain-language incident explanations,
+physical-system versus digital-twin evidence, evaluation metrics, risk-ranked alerts, and
+operator-confirmed response recommendations.
 
 ## Data policy
 
