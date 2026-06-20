@@ -97,6 +97,10 @@ Run the dashboard:
 streamlit run app/streamlit_app.py
 ```
 
+The Phase 6 mission-control dashboard provides selectable attack and fault scenarios, physical
+system versus digital-twin traces, hybrid detector evidence, evaluation metrics, risk-ranked
+alerts, and operator-confirmed response recommendations in one interactive demonstration.
+
 ## Data policy
 
 Raw and processed datasets are excluded from Git. In particular, iTrust datasets must not
@@ -149,6 +153,3 @@ hybrid scoring, diagnosis rules, evaluation metrics, and current limitations.
 - Alerts are ranked from highest to lowest risk and retain the evidence behind their diagnosis.
 - Recommended actions are bounded, reversible decision support—not autonomous actuation.
 - A qualified operator must confirm control changes and restoration of automatic operation.
-
-See [the Phase 5 risk-response specification](docs/phase-5-risk-response.md) for the score,
-impact metrics, response policy, safety boundary, and acceptance criteria.
