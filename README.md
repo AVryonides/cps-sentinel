@@ -19,7 +19,7 @@ tracks share evaluation and alert interfaces; they are not treated as one physic
 3. Inject a PV-sensor false-data attack.
 4. Detect the resulting residual and physical inconsistency.
 5. Produce an explainable, risk-ranked response recommendation.
-6. Demonstrate the scenario in Streamlit.
+6. Demonstrate the complete reasoning chain in a NiceGUI web application.
 
 ## Development setup
 
@@ -94,12 +94,12 @@ cps-sentinel assess \
 Run the dashboard:
 
 ```bash
-streamlit run app/streamlit_app.py
+python app/nicegui_app.py
 ```
 
-The Phase 6 mission-control dashboard provides selectable attack and fault scenarios, physical
-system versus digital-twin traces, hybrid detector evidence, evaluation metrics, risk-ranked
-alerts, and operator-confirmed response recommendations in one interactive demonstration.
+Open `http://localhost:8080`. The dashboard provides selectable attack and fault scenarios,
+plain-language incident explanations, physical-system versus digital-twin evidence, evaluation
+metrics, risk-ranked alerts, and operator-confirmed response recommendations.
 
 ## Data policy
 

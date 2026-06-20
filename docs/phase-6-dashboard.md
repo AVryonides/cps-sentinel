@@ -16,16 +16,22 @@ reasoning chain without running separate commands.
 
 ## Technical boundary
 
-The dashboard calls the same production modules and configuration as the CLI. It does not contain
-a second implementation of the simulator, twin, detector, or risk score. Streamlit caching avoids
-recomputing a scenario after tab changes. Scenario labels remain excluded from detector and risk
-inputs and are visible only in retrospective evaluation charts and metrics.
+The NiceGUI dashboard calls the same production modules and configuration as the CLI. It does not
+contain a second implementation of the simulator, twin, detector, or risk score. Framework-neutral
+analysis and Plotly builders live in `cps_sentinel.dashboard`, while NiceGUI is responsible only for
+layout and interaction. Cached deterministic runs avoid recomputing previously selected scenarios.
+Scenario labels remain excluded from detector and risk inputs and are visible only in retrospective
+evaluation.
+
+The interface uses a persistent desktop drawer and a visible mobile menu control. Explanatory
+reading guides precede technical charts, event windows are shaded consistently, and the quick
+reference defines CPS terminology for non-specialist readers.
 
 ## Run locally
 
 ```bash
 source .venv/bin/activate
-streamlit run app/streamlit_app.py
+python app/nicegui_app.py
 ```
 
-The default server is available at `http://localhost:8501`.
+The default server is available at `http://localhost:8080`.

@@ -23,7 +23,7 @@ flowchart LR
     S --> R
     R --> C[Event correlation]
     C --> L[Risk-ranked explainable alert]
-    L --> D[Streamlit dashboard]
+    L --> D[NiceGUI web dashboard]
 ```
 
 The controller may consume an attacked measurement, while the twin must retain an
