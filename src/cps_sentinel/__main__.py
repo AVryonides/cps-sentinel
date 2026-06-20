@@ -17,6 +17,14 @@ from cps_sentinel.detection import (
     write_events,
 )
 from cps_sentinel.detection.plotting import write_detection_plot
+from cps_sentinel.health import (
+    analyze_battery_health,
+    build_health_alerts,
+    evaluate_rul,
+    load_nasa_batteries,
+    write_health_alerts,
+)
+from cps_sentinel.health.plotting import write_health_plot
 from cps_sentinel.risk import assess_events, write_alerts
 from cps_sentinel.risk.plotting import write_risk_plot
 from cps_sentinel.scenarios import load_scenario, summarize_scenario
@@ -92,6 +100,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination prioritized alert JSON",
     )
     assess.add_argument("--plot", help="Optional destination for an interactive HTML plot")
+
+    health = commands.add_parser("health", help="Run Phase 7 NASA battery health validation")
+    health.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    health.add_argument(
+        "--input",
+        default="data/raw/nasa/battery-aging-fy08q4",
+        help="NASA B*.mat file or directory",
+    )
+    health.add_argument(
+        "--output",
+        default="data/processed/nasa-battery-health.csv",
+        help="Destination cycle-level health CSV",
+    )
+    health.add_argument(
+        "--alerts",
+        default="data/processed/nasa-health-alerts.json",
+        help="Destination latest battery health alerts",
+    )
+    health.add_argument("--plot", help="Optional destination for an interactive HTML plot")
     return parser
 
 
@@ -232,6 +259,34 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"  Recommended first action: {alert.recommended_actions[0]}")
         print(f"Row-level output: {output}")
         print(f"Alert output: {alerts_path}")
+        return 0
+
+    if args.command == "health":
+        raw = load_nasa_batteries(args.input)
+        frame = analyze_battery_health(raw, settings.health)
+        health_evaluation = evaluate_rul(frame)
+        health_alerts = build_health_alerts(frame)
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_csv(output, index=False)
+        alerts_path = write_health_alerts(health_alerts, args.alerts)
+        if args.plot:
+            plot_path = write_health_plot(frame, settings.health, args.plot)
+            print(f"Interactive health report: {plot_path}")
+        print("NASA battery health validation complete")
+        print(f"Batteries: {frame['battery_id'].nunique()}")
+        print(f"Discharge cycles: {len(frame)}")
+        print(f"RUL predictions evaluated: {health_evaluation.evaluated_predictions}")
+        print(f"RUL MAE: {health_evaluation.mae_cycles:.2f} cycles")
+        print(f"RUL RMSE: {health_evaluation.rmse_cycles:.2f} cycles")
+        for health_alert in health_alerts:
+            print(
+                f"{health_alert.battery_id}: {health_alert.health_status.upper()} - "
+                f"SOH {health_alert.state_of_health:.1%}, "
+                f"estimated RUL {health_alert.estimated_rul_cycles} cycles"
+            )
+        print(f"Cycle-level output: {output}")
+        print(f"Health alert output: {alerts_path}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes
