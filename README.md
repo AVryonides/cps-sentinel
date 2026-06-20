@@ -117,6 +117,22 @@ The health track extracts discharge capacity, calculates state of health, perfor
 remaining-useful-life projection, evaluates predictions against observed end of life, and emits
 maintenance-oriented health alerts.
 
+Run Phase 8 iTrust SWaT security validation with authorized local historian files:
+
+```bash
+cps-sentinel swat \
+  --config config/default.yaml \
+  --normal data/raw/itrust/SWaT_Dataset_Normal_v1.csv \
+  --attack data/raw/itrust/SWaT_Dataset_Attack_v0.csv \
+  --output data/processed/swat-security.csv \
+  --events data/processed/swat-security-events.json \
+  --plot reports/figures/swat-security.html
+```
+
+This external security track learns multivariate process behavior only from clean SWaT data,
+detects persistent deviations in the later labeled run, evaluates point and event performance,
+and identifies the process tags contributing most strongly to each event.
+
 ## Data policy
 
 Raw and processed datasets are excluded from Git. In particular, iTrust datasets must not
