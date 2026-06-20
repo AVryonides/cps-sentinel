@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -342,9 +343,7 @@ def build_page() -> None:
         state["result"] = await run.io_bound(run_dashboard_scenario, str(CONFIG_PATH), str(path))
         content.refresh()
 
-    drawer = ui.left_drawer(value=True).props(
-        "width=280 breakpoint=1050 show-if-above bordered"
-    )
+    drawer = ui.left_drawer().props("width=280 breakpoint=1050 show-if-above bordered")
     with drawer, ui.column().classes("w-full px-4 pt-5 gap-0"):
         with ui.row().classes("items-center gap-3 px-2"):
             ui.html('<div class="brand-mark">CS</div>')
@@ -393,16 +392,18 @@ def build_page() -> None:
         content()
 
 
-ui.add_css(CSS, shared=True)
+ui.add_css(CSS)
 ui.colors(primary="#42c6d7", secondary="#e5a93d", negative="#e66565")
+IS_PYTEST = "PYTEST_CURRENT_TEST" in os.environ
+if not IS_PYTEST:
+    build_page()
 
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ in {"__main__", "__mp_main__"} and not IS_PYTEST:
     ui.run(
-        root=build_page,
         title="CPS Sentinel | System Monitor",
         favicon=FAVICON,
         host="127.0.0.1",
-        port=8080,
+        port=int(os.environ.get("CPS_SENTINEL_PORT", "8080")),
         dark=True,
         reload=False,
         show=True,

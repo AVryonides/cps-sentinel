@@ -56,6 +56,9 @@ def test_explanatory_figures_mark_event_window(flagship_result) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.filterwarnings("ignore:coroutine 'Outbox.loop' was never awaited:RuntimeWarning")
+@pytest.mark.filterwarnings(
+    "ignore:coroutine 'Drawer.__init__.<locals>._request_value' was never awaited:RuntimeWarning"
+)
 async def test_nicegui_page_exposes_complete_explanatory_story() -> None:
     async with user_simulation(build_page) as user:
         await user.open("/")
