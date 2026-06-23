@@ -1,4 +1,4 @@
-"""NiceGUI presentation layer for the CPS Sentinel Phase 6 demonstrator."""
+"""NiceGUI presentation layer for the unified CPS Sentinel operations interface."""
 
 # ruff: noqa: E501
 
@@ -13,9 +13,16 @@ from nicegui import events, run, ui
 from cps_sentinel.config import load_settings
 from cps_sentinel.dashboard import (
     DashboardResult,
+    ExternalTrackState,
+    HealthDashboardResult,
+    SwatDashboardResult,
     build_consequence_figure,
     build_detection_figure,
+    build_health_dashboard_figure,
     build_sensor_figure,
+    build_swat_dashboard_figure,
+    load_health_dashboard_result,
+    load_swat_dashboard_result,
     plain_language_summary,
     run_dashboard_scenario,
     scenario_catalog,
@@ -26,6 +33,8 @@ CONFIG_PATH = ROOT / "config" / "default.yaml"
 SETTINGS = load_settings(CONFIG_PATH)
 CATALOG = scenario_catalog(ROOT, SETTINGS)
 DEFAULT_SCENARIO = next(iter(CATALOG))
+HEALTH_RESULT_PATH = ROOT / "data" / "processed" / "nasa-battery-health.csv"
+SWAT_RESULT_PATH = ROOT / "data" / "processed" / "swat-security.csv"
 FAVICON = """
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="8" fill="#101720"/>
@@ -64,6 +73,9 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
   border-left: 2px solid transparent; border-radius: 0 !important; padding: 11px 14px !important; }
 .nav-button:hover { color: var(--text) !important; background: #131c26 !important;
   border-left-color: var(--cyan); }
+.mode-button { width: 100%; justify-content: flex-start; color: var(--text) !important;
+  border: 1px solid var(--line) !important; border-radius: 3px !important; margin-top: 7px; }
+.mode-button:hover { border-color: var(--cyan) !important; background: #131c26 !important; }
 .scenario-select .q-field__control { background: var(--surface); border-radius: 4px; color: var(--text); }
 .scenario-select .q-field__native, .scenario-select .q-field__label,
 .scenario-select .q-field__marginal { color: var(--text) !important; }
@@ -108,6 +120,10 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .action-copy { color: #c4ced8; font-size: 14px; line-height: 1.55; }
 .safety-note { background: rgba(229,169,61,.07); border: 1px solid rgba(229,169,61,.28);
   color: #d9c18f; padding: 16px 18px; font-size: 13px; line-height: 1.55; width: 100%; }
+.empty-state { background: var(--surface); border: 1px dashed var(--line-strong); padding: 32px;
+  width: 100%; }
+.track-ready { color: var(--cyan); }
+.track-pending { color: var(--amber); }
 .glossary-row { display: grid; grid-template-columns: 180px 1fr; gap: 24px;
   padding: 14px 0; border-top: 1px solid var(--line); }
 .glossary-term { color: var(--text); font: 600 12px/1.5 ui-monospace, SFMono-Regular, monospace; }
@@ -331,11 +347,176 @@ def _render_dashboard(result: DashboardResult) -> None:
         ).classes("footer")
 
 
+def _render_track_unavailable(title: str, state: ExternalTrackState, command: str) -> None:
+    with ui.column().classes("w-full gap-0"):
+        ui.label("EXTERNAL VALIDATION TRACK").classes("eyebrow")
+        ui.label(title).classes("hero-title")
+        ui.label(
+            "This view activates from generated local results. Raw research datasets remain "
+            "outside the web interface and outside version control."
+        ).classes("hero-copy")
+        with ui.column().classes("section gap-5"), ui.column().classes("empty-state gap-3"):
+            ui.label("Validation result not available").classes("finding-title")
+            ui.label(state.message).classes("finding-copy")
+            ui.label("Run from the project terminal:").classes("metric-label")
+            ui.code(command).classes("w-full")
+
+
+def _render_health_dashboard(state: ExternalTrackState) -> None:
+    if not isinstance(state.result, HealthDashboardResult):
+        _render_track_unavailable(
+            "Battery degradation before failure.",
+            state,
+            "cps-sentinel health --config config/default.yaml "
+            "--input data/raw/nasa/battery-aging-fy08q4 "
+            "--output data/processed/nasa-battery-health.csv",
+        )
+        return
+    result = state.result
+    latest = result.frame.sort_values("cycle_index").groupby("battery_id").tail(1)
+    critical = int((latest["health_status"] == "critical").sum())
+    with ui.column().classes("w-full gap-0"):
+        ui.label("NASA BATTERY VALIDATION").classes("eyebrow")
+        ui.label("Battery degradation before failure.").classes("hero-title")
+        ui.label(
+            "This track follows measured discharge capacity over repeated cycles, estimates "
+            "remaining useful life, and translates degradation into maintenance-oriented alerts."
+        ).classes("hero-copy")
+        with ui.row().classes("status-line items-center gap-4 w-full"):
+            ui.element("span").classes("status-dot").style("background: var(--cyan)")
+            ui.label("Real NASA validation loaded").classes("status-text track-ready")
+
+        with ui.element("div").classes("metric-grid"):
+            _metric("Batteries", str(result.frame["battery_id"].nunique()), "Independent cells")
+            _metric("Discharge cycles", f"{len(result.frame):,}", "Measured capacity tests")
+            _metric("Critical latest state", str(critical), "At or below configured SOH limit")
+            _metric(
+                "RUL error",
+                f"{result.evaluation.mae_cycles:.2f} cycles",
+                f"{result.evaluation.evaluated_predictions} evaluated forecasts",
+            )
+
+        with ui.column().classes("section gap-6").props("id=health-evidence"):
+            _section_heading(
+                "01 / DEGRADATION EVIDENCE",
+                "How quickly is usable capacity disappearing?",
+                "Capacity and state of health are physical measurements. The remaining-life line "
+                "is a causal projection made using only information available at that cycle.",
+            )
+            _reading_guide(
+                "How to read this report",
+                "A downward capacity trend means less stored energy is available. The dotted "
+                "observed-RUL line is retrospective evaluation evidence, not an input to forecasts.",
+            )
+            with ui.element("div").classes("chart-wrap"):
+                ui.plotly(build_health_dashboard_figure(result, SETTINGS)).classes("w-full")
+
+        with ui.column().classes("section gap-6").props("id=health-alerts"):
+            _section_heading(
+                "02 / MAINTENANCE PRIORITIES",
+                "Which batteries need attention?",
+                "Each row reflects the latest measured cycle and keeps recommendations advisory.",
+            )
+            for alert in result.alerts:
+                with ui.column().classes("panel gap-3"):
+                    ui.label(f"{alert.battery_id} / {alert.health_status.upper()}").classes(
+                        "risk-level"
+                    )
+                    ui.label(f"SOH {alert.state_of_health:.1%}").classes("finding-title")
+                    ui.label(alert.physical_impact).classes("guide-copy")
+                    ui.label(alert.recommended_actions[0]).classes("action-copy")
+            ui.label(result.alerts[0].safety_note).classes("safety-note")
+
+        ui.label("CPS Sentinel · NASA health validation · Prognostics are advisory").classes(
+            "footer"
+        )
+
+
+def _render_swat_dashboard(state: ExternalTrackState) -> None:
+    if not isinstance(state.result, SwatDashboardResult):
+        _render_track_unavailable(
+            "Industrial attacks in real process data.",
+            state,
+            "cps-sentinel swat --config config/default.yaml "
+            "--normal data/raw/itrust/<normal-file> "
+            "--attack data/raw/itrust/<attack-file> "
+            "--output data/processed/swat-security.csv",
+        )
+        return
+    result = state.result
+    evaluation = result.evaluation
+    with ui.column().classes("w-full gap-0"):
+        ui.label("ITRUST SWAT VALIDATION").classes("eyebrow")
+        ui.label("Industrial attacks in real process data.").classes("hero-title")
+        ui.label(
+            "This track learns normal relationships among water-treatment sensors and actuators, "
+            "then evaluates persistent deviations against labels withheld during detection."
+        ).classes("hero-copy")
+        with ui.row().classes("status-line items-center gap-4 w-full"):
+            ui.element("span").classes("status-dot").style("background: var(--cyan)")
+            ui.label("Authorized SWaT validation loaded").classes("status-text track-ready")
+
+        with ui.element("div").classes("metric-grid"):
+            _metric("Historian rows", f"{evaluation.rows:,}", "Labeled attack run")
+            _metric("Point F1", f"{evaluation.f1:.3f}", "Precision and recall balance")
+            _metric("Event recall", f"{evaluation.event_recall:.1%}", "Attack intervals detected")
+            _metric(
+                "False-positive rate",
+                f"{evaluation.false_positive_rate:.2%}",
+                "Normal rows flagged",
+            )
+
+        with ui.column().classes("section gap-6").props("id=swat-evidence"):
+            _section_heading(
+                "01 / INDUSTRIAL EVIDENCE",
+                "When did process behavior become abnormal?",
+                "The score combines multivariate novelty and explicit process deviation, then "
+                "requires persistence before creating an event.",
+            )
+            _reading_guide(
+                "Labels are evaluation only",
+                "The red attack trace is displayed after scoring. It never participates in model "
+                "training, clean-data calibration, or anomaly decisions.",
+            )
+            with ui.element("div").classes("chart-wrap"):
+                ui.plotly(build_swat_dashboard_figure(result)).classes("w-full")
+
+        with ui.column().classes("section gap-6").props("id=swat-events"):
+            _section_heading(
+                "02 / EVENT REVIEW",
+                "Which process tags carried the evidence?",
+                "Events rank the tags with the largest standardized deviations for investigation.",
+            )
+            for event in result.events[:12]:
+                with ui.column().classes("panel gap-3"):
+                    ui.label(event.event_id).classes("metric-label")
+                    ui.label(", ".join(event.top_affected_tags) or "No leading tag").classes(
+                        "finding-title"
+                    )
+                    ui.label(event.physical_context).classes("guide-copy")
+                    ui.label(
+                        "Overlaps a labeled attack"
+                        if event.overlaps_labeled_attack
+                        else "No label overlap"
+                    ).classes("action-copy")
+
+        ui.label(
+            "CPS Sentinel · iTrust SWaT validation · Raw historian data is never exposed"
+        ).classes("footer")
+
+
 def build_page() -> None:
     """Build one client-private dashboard page."""
     state: dict[str, Any] = {
-        "result": run_dashboard_scenario(str(CONFIG_PATH), str(CATALOG[DEFAULT_SCENARIO]))
+        "mode": "nanogrid",
+        "result": run_dashboard_scenario(str(CONFIG_PATH), str(CATALOG[DEFAULT_SCENARIO])),
     }
+    health_state = load_health_dashboard_result(HEALTH_RESULT_PATH)
+    swat_state = load_swat_dashboard_result(SWAT_RESULT_PATH, SETTINGS)
+
+    def change_mode(mode: str) -> None:
+        state["mode"] = mode
+        content.refresh()
 
     async def change_scenario(event: events.ValueChangeEventArguments) -> None:
         path = CATALOG[str(event.value)]
@@ -351,6 +532,15 @@ def build_page() -> None:
                 ui.label("CPS Sentinel").classes("brand-name")
                 ui.label("System monitor").classes("brand-sub")
         ui.label("Navigate").classes("nav-label")
+        for label, mode, marker in (
+            ("Nanogrid monitor", "nanogrid", "mode-nanogrid"),
+            ("Battery health", "health", "mode-health"),
+            ("SWaT security", "swat", "mode-swat"),
+        ):
+            ui.button(label, on_click=lambda selected=mode: change_mode(selected)).props(
+                "flat no-caps align=left"
+            ).classes("mode-button").mark(marker)
+        ui.label("Nanogrid sections").classes("nav-label")
         for label, target in (
             ("Incident overview", "overview"),
             ("Sensor evidence", "sensor"),
@@ -379,15 +569,20 @@ def build_page() -> None:
         ui.button(icon="menu", on_click=drawer.toggle).props(
             "flat round aria-label=Open_navigation"
         ).classes("mobile-menu").mark("mobile-menu")
-        ui.label("CPS SENTINEL / NANOGRID DEMONSTRATOR").classes("status-text")
+        ui.label("CPS SENTINEL / UNIFIED OPERATIONS").classes("status-text")
         ui.space()
-        ui.label("PHASE 6").classes("status-text")
+        ui.label("PHASE 9").classes("status-text")
 
     with ui.column().classes("page-shell gap-0"):
 
         @ui.refreshable
         def content() -> None:
-            _render_dashboard(state["result"])
+            if state["mode"] == "health":
+                _render_health_dashboard(health_state)
+            elif state["mode"] == "swat":
+                _render_swat_dashboard(swat_state)
+            else:
+                _render_dashboard(state["result"])
 
         content()
 

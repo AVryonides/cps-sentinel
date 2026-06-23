@@ -98,9 +98,9 @@ python app/nicegui_app.py
 ```
 
 The dashboard opens automatically at `http://localhost:8080` and also prints the address in the
-terminal. It provides selectable attack and fault scenarios, plain-language incident explanations,
-physical-system versus digital-twin evidence, evaluation metrics, risk-ranked alerts, and
-operator-confirmed response recommendations.
+terminal. Its unified navigation includes the nanogrid attack/fault demonstrator, NASA battery
+health validation, and iTrust SWaT security validation. External views read generated processed
+results only; restricted raw datasets are never exposed by the web layer.
 
 Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
 

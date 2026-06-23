@@ -17,9 +17,23 @@ from cps_sentinel.detection import (
     aggregate_events,
     evaluate_detection,
 )
+from cps_sentinel.health import (
+    HealthAlert,
+    RulEvaluation,
+    build_health_alerts,
+    evaluate_rul,
+)
+from cps_sentinel.health.plotting import build_health_figure
 from cps_sentinel.risk import AlertRecord, assess_events
 from cps_sentinel.scenarios import ScenarioSpec, load_scenario
 from cps_sentinel.simulation import run_simulation
+from cps_sentinel.swat import (
+    SwatEvaluation,
+    SwatEvent,
+    aggregate_swat_events,
+    evaluate_swat_detection,
+)
+from cps_sentinel.swat.plotting import build_swat_figure
 from cps_sentinel.twin import run_digital_twin
 
 PLOT_BACKGROUND = "#101720"
@@ -42,6 +56,27 @@ class DashboardResult:
     @property
     def primary_alert(self) -> AlertRecord | None:
         return self.alerts[0] if self.alerts else None
+
+
+@dataclass(frozen=True)
+class HealthDashboardResult:
+    frame: pd.DataFrame
+    evaluation: RulEvaluation
+    alerts: tuple[HealthAlert, ...]
+
+
+@dataclass(frozen=True)
+class SwatDashboardResult:
+    frame: pd.DataFrame
+    evaluation: SwatEvaluation
+    events: tuple[SwatEvent, ...]
+
+
+@dataclass(frozen=True)
+class ExternalTrackState:
+    status: str
+    message: str
+    result: HealthDashboardResult | SwatDashboardResult | None = None
 
 
 def scenario_catalog(root: Path, settings: Settings) -> dict[str, Path]:
@@ -71,6 +106,97 @@ def run_dashboard_scenario(config_path: str, scenario_path: str) -> DashboardRes
         evaluation=evaluate_detection(frame),
         alerts=tuple(assess_events(frame, events, settings)),
     )
+
+
+@lru_cache(maxsize=4)
+def load_health_dashboard_result(path: str | Path) -> ExternalTrackState:
+    """Load generated NASA health results without reading or exposing raw source data."""
+    source = Path(path)
+    if not source.is_file():
+        return ExternalTrackState(
+            status="not_ready",
+            message="Run the Phase 7 health command to generate the local dashboard result.",
+        )
+    try:
+        frame = pd.read_csv(source)
+        required = {
+            "battery_id",
+            "cycle_index",
+            "capacity_ah",
+            "state_of_health",
+            "health_status",
+            "estimated_rul_cycles",
+            "actual_rul_cycles",
+        }
+        missing = required.difference(frame.columns)
+        if missing:
+            raise ValueError(f"missing columns: {sorted(missing)}")
+        result = HealthDashboardResult(
+            frame=frame,
+            evaluation=evaluate_rul(frame),
+            alerts=tuple(build_health_alerts(frame)),
+        )
+    except (OSError, ValueError, pd.errors.ParserError) as error:
+        return ExternalTrackState(
+            status="error", message=f"Health result could not be loaded: {error}"
+        )
+    return ExternalTrackState(
+        status="ready",
+        message="NASA battery validation result loaded from the local processed-data boundary.",
+        result=result,
+    )
+
+
+@lru_cache(maxsize=4)
+def load_swat_dashboard_result(path: str | Path, settings: Settings) -> ExternalTrackState:
+    """Load generated SWaT results while keeping restricted historian files outside the UI."""
+    source = Path(path)
+    if not source.is_file():
+        return ExternalTrackState(
+            status="not_ready",
+            message="Run the Phase 8 SWaT command after receiving authorized iTrust files.",
+        )
+    try:
+        frame = pd.read_csv(source)
+        required = {
+            "timestamp",
+            "is_attack",
+            "anomaly_score",
+            "anomaly_threshold",
+            "detected",
+            "top_contributors",
+        }
+        missing = required.difference(frame.columns)
+        if missing:
+            raise ValueError(f"missing columns: {sorted(missing)}")
+        result = SwatDashboardResult(
+            frame=frame,
+            evaluation=evaluate_swat_detection(frame),
+            events=tuple(aggregate_swat_events(frame, settings.swat)),
+        )
+    except (OSError, ValueError, pd.errors.ParserError) as error:
+        return ExternalTrackState(
+            status="error", message=f"SWaT result could not be loaded: {error}"
+        )
+    return ExternalTrackState(
+        status="ready",
+        message=(
+            "SWaT validation result loaded; restricted raw historian data remains outside the UI."
+        ),
+        result=result,
+    )
+
+
+def build_health_dashboard_figure(result: HealthDashboardResult, settings: Settings) -> go.Figure:
+    """Restyle the Phase 7 report for the unified dark operations interface."""
+    figure = build_health_figure(result.frame, settings.health)
+    return _style_external_figure(figure, "Battery capacity, health, and remaining life")
+
+
+def build_swat_dashboard_figure(result: SwatDashboardResult) -> go.Figure:
+    """Restyle the Phase 8 report for the unified dark operations interface."""
+    figure = build_swat_figure(result.frame, list(result.events), result.evaluation)
+    return _style_external_figure(figure, "Industrial process anomaly evidence")
 
 
 def plain_language_summary(result: DashboardResult) -> tuple[str, str]:
@@ -315,4 +441,19 @@ def _finish_figure(
     figure.update_yaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
     if y_title:
         figure.update_yaxes(title_text=y_title)
+    return figure
+
+
+def _style_external_figure(figure: go.Figure, title: str) -> go.Figure:
+    figure.update_layout(
+        title={"text": title, "font": {"size": 18, "color": TEXT_COLOR}},
+        template="plotly_dark",
+        paper_bgcolor=PLOT_BACKGROUND,
+        plot_bgcolor=PLOT_BACKGROUND,
+        font={"family": "Inter, system-ui, sans-serif", "color": TEXT_COLOR},
+        hovermode="x unified",
+        margin={"l": 58, "r": 24, "t": 72, "b": 48},
+    )
+    figure.update_xaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
+    figure.update_yaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
     return figure
