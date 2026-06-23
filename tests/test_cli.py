@@ -28,6 +28,46 @@ def _write_battery_mat(path: Path, capacities: list[float]) -> None:
     savemat(path, {path.stem: {"cycle": np.array(cycles, dtype=object)}})
 
 
+def _write_swat_csv(path: Path, rows: int, attack_start: int | None = None) -> None:
+    index = np.arange(rows)
+    attack = np.zeros(rows, dtype=bool)
+    if attack_start is not None:
+        attack[attack_start : attack_start + 40] = True
+    pd.DataFrame(
+        {
+            "Timestamp": pd.date_range("2026-01-01", periods=rows, freq="s"),
+            "LIT101": 500 + 12 * np.sin(index / 18) + attack * 200,
+            "FIT101": 2.5 + 0.1 * np.cos(index / 13) - attack * 1.7,
+            "MV101": (np.sin(index / 25) > 0).astype(float),
+            "Normal/Attack": np.where(attack, "Attack", "Normal"),
+        }
+    ).to_csv(path, index=False)
+
+
+def _write_scheduled_swat_xlsx(path: Path) -> None:
+    rows: list[list[object]] = [
+        ["", "P1", "", ""],
+        ["GMT +0", "FIT 401", "LIT 301", "P601 Status"],
+        ["timestamp", "value", "value", "value"],
+    ]
+    timestamps = pd.date_range("2019-07-20T04:35:00Z", "2019-07-20T08:25:00Z", freq="s")
+    for index, timestamp in enumerate(timestamps):
+        attack = (
+            pd.Timestamp("2019-07-20T07:08:46Z")
+            <= timestamp
+            <= pd.Timestamp("2019-07-20T07:10:31Z")
+        )
+        rows.append(
+            [
+                timestamp.isoformat().replace("+00:00", "Z"),
+                0.8 - attack * 0.35,
+                800 + 5 * np.sin(index / 40) + attack * 200,
+                "On" if attack else "Off",
+            ]
+        )
+    pd.DataFrame(rows).to_excel(path, index=False, header=False)
+
+
 def test_validate_command() -> None:
     exit_code = main(["validate", "--config", str(ROOT / "config" / "default.yaml")])
 
@@ -191,3 +231,70 @@ def test_health_command_writes_cycle_health_alerts_and_plot(tmp_path: Path) -> N
     assert alerts.is_file()
     assert plot.is_file()
     assert "estimated_rul_cycles" in frame
+
+
+def test_swat_command_writes_detection_events_and_plot(tmp_path: Path) -> None:
+    normal = tmp_path / "normal.csv"
+    attack = tmp_path / "attack.csv"
+    _write_swat_csv(normal, 400)
+    _write_swat_csv(attack, 250, attack_start=100)
+    output = tmp_path / "swat-security.csv"
+    events = tmp_path / "swat-events.json"
+    plot = tmp_path / "swat.html"
+
+    exit_code = main(
+        [
+            "swat",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--normal",
+            str(normal),
+            "--attack",
+            str(attack),
+            "--output",
+            str(output),
+            "--events",
+            str(events),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert events.is_file()
+    assert plot.is_file()
+    assert frame["detected"].sum() > 0
+
+
+def test_swat_scheduled_run_command_writes_detection_events_and_plot(tmp_path: Path) -> None:
+    scheduled = tmp_path / "swat-a4-a5.xlsx"
+    _write_scheduled_swat_xlsx(scheduled)
+    output = tmp_path / "swat-security.csv"
+    events = tmp_path / "swat-events.json"
+    plot = tmp_path / "swat.html"
+
+    exit_code = main(
+        [
+            "swat",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scheduled-run",
+            str(scheduled),
+            "--schedule",
+            "swat-a4-a5-jul-2019",
+            "--output",
+            str(output),
+            "--events",
+            str(events),
+            "--plot",
+            str(plot),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    assert exit_code == 0
+    assert events.is_file()
+    assert plot.is_file()
+    assert frame["is_attack"].sum() > 0
+    assert frame["detected"].sum() > 0

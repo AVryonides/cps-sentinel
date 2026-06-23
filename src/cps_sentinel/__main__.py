@@ -31,6 +31,16 @@ from cps_sentinel.scenarios import load_scenario, summarize_scenario
 from cps_sentinel.scenarios.plotting import write_scenario_plot
 from cps_sentinel.simulation import run_simulation, summarize_simulation
 from cps_sentinel.simulation.plotting import write_simulation_plot
+from cps_sentinel.swat import (
+    SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS,
+    SwatDetector,
+    aggregate_swat_events,
+    evaluate_swat_detection,
+    load_swat_file,
+    load_swat_scheduled_file,
+    write_swat_events,
+)
+from cps_sentinel.swat.plotting import write_swat_plot
 from cps_sentinel.twin import run_digital_twin, summarize_twin
 from cps_sentinel.twin.plotting import write_twin_plot
 
@@ -119,6 +129,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination latest battery health alerts",
     )
     health.add_argument("--plot", help="Optional destination for an interactive HTML plot")
+
+    swat = commands.add_parser("swat", help="Run Phase 8 iTrust SWaT security validation")
+    swat.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    swat.add_argument("--normal", help="Authorized normal historian CSV/XLSX")
+    swat.add_argument("--attack", help="Authorized labeled attack historian CSV/XLSX")
+    swat.add_argument(
+        "--scheduled-run",
+        help="Authorized single-run historian CSV/XLSX labelled from an official schedule",
+    )
+    swat.add_argument(
+        "--schedule",
+        choices=["swat-a4-a5-jul-2019"],
+        help="Built-in official attack schedule used with --scheduled-run",
+    )
+    swat.add_argument(
+        "--sample-stride",
+        type=int,
+        default=1,
+        help="Keep every Nth row; default preserves the original one-second resolution",
+    )
+    swat.add_argument(
+        "--output",
+        default="data/processed/swat-security.csv",
+        help="Destination row-level security CSV",
+    )
+    swat.add_argument(
+        "--events",
+        default="data/processed/swat-security-events.json",
+        help="Destination aggregated event JSON",
+    )
+    swat.add_argument("--plot", help="Optional destination for an interactive HTML report")
     return parser
 
 
@@ -287,6 +328,64 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         print(f"Cycle-level output: {output}")
         print(f"Health alert output: {alerts_path}")
+        return 0
+
+    if args.command == "swat":
+        if args.scheduled_run:
+            if args.schedule != "swat-a4-a5-jul-2019":
+                raise SystemExit(
+                    "--scheduled-run currently requires --schedule swat-a4-a5-jul-2019"
+                )
+            normal = load_swat_scheduled_file(
+                args.scheduled_run,
+                attack_windows=SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS,
+                start="2019-07-20T04:35:00Z",
+                end="2019-07-20T07:08:45Z",
+                sample_stride=args.sample_stride,
+            )
+            attack = load_swat_scheduled_file(
+                args.scheduled_run,
+                attack_windows=SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS,
+                start="2019-07-20T07:08:46Z",
+                end="2019-07-20T08:16:18Z",
+                sample_stride=args.sample_stride,
+            )
+        else:
+            if args.normal is None or args.attack is None:
+                raise SystemExit(
+                    "Provide either --normal and --attack, or --scheduled-run with --schedule"
+                )
+            normal = load_swat_file(args.normal, sample_stride=args.sample_stride)
+            attack = load_swat_file(
+                args.attack,
+                assume_attack=False,
+                sample_stride=args.sample_stride,
+            )
+        swat_detector = SwatDetector(settings.swat, settings.random_seed).fit(normal)
+        frame = swat_detector.detect(attack)
+        swat_evaluation = evaluate_swat_detection(frame)
+        swat_events = aggregate_swat_events(frame, settings.swat)
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_csv(output, index=False)
+        events_path = write_swat_events(swat_events, args.events)
+        if args.plot:
+            plot_path = write_swat_plot(frame, swat_events, swat_evaluation, args.plot)
+            print(f"Interactive SWaT report: {plot_path}")
+        print("iTrust SWaT security validation complete")
+        print(f"Historian rows evaluated: {swat_evaluation.rows}")
+        print(f"Labeled attack rows: {swat_evaluation.attack_rows}")
+        print(f"Point precision: {swat_evaluation.precision:.3f}")
+        print(f"Point recall: {swat_evaluation.recall:.3f}")
+        print(f"Point F1: {swat_evaluation.f1:.3f}")
+        print(f"False-positive rate: {swat_evaluation.false_positive_rate:.3f}")
+        print(
+            f"Attack events detected: {swat_evaluation.detected_attack_events}/"
+            f"{swat_evaluation.ground_truth_events}"
+        )
+        print(f"Aggregated detection events: {len(swat_events)}")
+        print(f"Row-level output: {output}")
+        print(f"Event output: {events_path}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes

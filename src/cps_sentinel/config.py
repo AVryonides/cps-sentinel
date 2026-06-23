@@ -80,6 +80,18 @@ class HealthConfig:
 
 
 @dataclass(frozen=True)
+class SwatConfig:
+    training_fraction: float
+    score_quantile: float
+    isolation_estimators: int
+    max_training_rows: int
+    persistence_window: int
+    persistence_votes: int
+    event_gap_steps: int
+    top_contributors: int
+
+
+@dataclass(frozen=True)
 class Settings:
     project_name: str
     random_seed: int
@@ -87,6 +99,7 @@ class Settings:
     detection: DetectionConfig
     risk: RiskConfig
     health: HealthConfig
+    swat: SwatConfig
 
 
 def _require(mapping: dict[str, Any], key: str, section: str) -> Any:
@@ -111,15 +124,17 @@ def load_settings(path: str | Path) -> Settings:
     detection = _require(raw, "detection", "root")
     risk = _require(raw, "risk", "root")
     health = _require(raw, "health", "root")
+    swat = _require(raw, "swat", "root")
     if (
         not isinstance(project, dict)
         or not isinstance(simulation, dict)
         or not isinstance(detection, dict)
         or not isinstance(risk, dict)
         or not isinstance(health, dict)
+        or not isinstance(swat, dict)
     ):
         raise ConfigurationError(
-            "Project, simulation, detection, risk, and health sections must be mappings"
+            "Project, simulation, detection, risk, health, and swat sections must be mappings"
         )
 
     battery = _require_mapping(simulation, "battery", "simulation")
@@ -205,6 +220,18 @@ def load_settings(path: str | Path) -> Settings:
     )
     _validate_health(health_config)
 
+    swat_config = SwatConfig(
+        training_fraction=float(_require(swat, "training_fraction", "swat")),
+        score_quantile=float(_require(swat, "score_quantile", "swat")),
+        isolation_estimators=int(_require(swat, "isolation_estimators", "swat")),
+        max_training_rows=int(_require(swat, "max_training_rows", "swat")),
+        persistence_window=int(_require(swat, "persistence_window", "swat")),
+        persistence_votes=int(_require(swat, "persistence_votes", "swat")),
+        event_gap_steps=int(_require(swat, "event_gap_steps", "swat")),
+        top_contributors=int(_require(swat, "top_contributors", "swat")),
+    )
+    _validate_swat(swat_config)
+
     return Settings(
         project_name=str(_require(project, "name", "project")),
         random_seed=int(_require(project, "random_seed", "project")),
@@ -212,6 +239,7 @@ def load_settings(path: str | Path) -> Settings:
         detection=detection_config,
         risk=risk_config,
         health=health_config,
+        swat=swat_config,
     )
 
 
@@ -302,4 +330,21 @@ def _validate_health(config: HealthConfig) -> None:
     if config.regression_window_cycles < config.minimum_regression_cycles:
         raise ConfigurationError(
             "health regression window must include the minimum training cycles"
+        )
+
+
+def _validate_swat(config: SwatConfig) -> None:
+    if not 0.5 <= config.training_fraction < 1:
+        raise ConfigurationError("swat.training_fraction must be in [0.5, 1)")
+    if not 0 < config.score_quantile < 1:
+        raise ConfigurationError("swat.score_quantile must be between 0 and 1")
+    if config.isolation_estimators < 10 or config.max_training_rows < 100:
+        raise ConfigurationError("swat model size must include at least 10 trees and 100 rows")
+    if config.persistence_window <= 0:
+        raise ConfigurationError("swat.persistence_window must be positive")
+    if not 0 < config.persistence_votes <= config.persistence_window:
+        raise ConfigurationError("swat.persistence_votes must be within the window")
+    if config.event_gap_steps < 0 or config.top_contributors <= 0:
+        raise ConfigurationError(
+            "swat event gap cannot be negative and contributors must be positive"
         )

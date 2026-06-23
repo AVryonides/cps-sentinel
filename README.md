@@ -6,8 +6,8 @@ CPS Sentinel is a portfolio-grade research prototype for detecting, explaining, 
 responding to faults and cyberattacks in cyber-physical systems. Its central system is a
 simulated smart nanogrid paired with a physics-aware digital twin.
 
-NASA battery data will provide an external health-prognostics validation track. The iTrust
-SWaT dataset will provide a separate industrial attack-detection validation track. These
+NASA battery data provides an external health-prognostics validation track. The iTrust
+SWaT dataset provides a separate industrial attack-detection validation track. These
 tracks share evaluation and alert interfaces; they are not treated as one physical system.
 
 [View the overall architecture as a PDF](output/pdf/cps-sentinel-overall-architecture.pdf).
@@ -116,6 +116,26 @@ cps-sentinel health \
 The health track extracts discharge capacity, calculates state of health, performs causal
 remaining-useful-life projection, evaluates predictions against observed end of life, and emits
 maintenance-oriented health alerts.
+
+Run Phase 8 iTrust SWaT security validation with the authorized SWaT.A4/A5 July 2019
+historian workbook and companion attack schedule:
+
+```bash
+cps-sentinel swat \
+  --config config/default.yaml \
+  --scheduled-run "data/raw/itrust/SWaT.A4 & A5_Jul 2019/SWaT_dataset_Jul 19 v2.xlsx" \
+  --schedule swat-a4-a5-jul-2019 \
+  --output data/processed/swat-security.csv \
+  --events data/processed/swat-security-events.json \
+  --plot reports/figures/swat-security.html
+```
+
+This external security track learns multivariate process behavior only from clean SWaT data,
+detects persistent deviations in the later labeled run, evaluates point and event performance,
+and identifies the process tags contributing most strongly to each event.
+
+Current local validation on the official A4/A5 release detects 5 of 6 scheduled attack events
+with point precision 0.722, point recall 0.323, F1 0.446, and false-positive rate 0.119.
 
 ## Data policy
 
