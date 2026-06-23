@@ -19,7 +19,7 @@ def test_default_configuration_loads() -> None:
     assert settings.detection.physics_min_votes == 1
     assert settings.risk.impact_weight == 0.40
     assert settings.health.end_of_life_capacity_ah == 1.4
-    assert settings.swat.persistence_votes == 3
+    assert settings.swat.persistence_votes == 2
 
 
 def test_missing_configuration_is_rejected(tmp_path: Path) -> None:

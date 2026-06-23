@@ -53,10 +53,10 @@ health:
 
 swat:
   training_fraction: 0.80
-  score_quantile: 0.995
+  score_quantile: 0.95
   isolation_estimators: 200
   max_training_rows: 100000
   persistence_window: 5
-  persistence_votes: 3
-  event_gap_steps: 2
+  persistence_votes: 2
+  event_gap_steps: 120
   top_contributors: 5

@@ -5,10 +5,12 @@ import pandas as pd
 
 from cps_sentinel.config import load_settings
 from cps_sentinel.swat import (
+    SwatAttackWindow,
     SwatDetector,
     aggregate_swat_events,
     evaluate_swat_detection,
     load_swat_file,
+    load_swat_scheduled_file,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -58,6 +60,45 @@ def test_load_swat_excel_workbook(tmp_path: Path) -> None:
     assert len(loaded) == 12
     assert loaded["is_attack"].sum() == 6
     assert {"LIT101", "FIT101", "MV101"}.issubset(loaded.columns)
+
+
+def test_load_swat_scheduled_excel_labels_official_windows(tmp_path: Path) -> None:
+    source = tmp_path / "scheduled.xlsx"
+    rows = [
+        ["", "P1", "", ""],
+        ["GMT +0", "FIT 101", "LIT 101", "MV 101"],
+        ["timestamp", "value", "value", "value"],
+    ]
+    timestamps = pd.date_range("2026-01-01T00:00:00Z", periods=140, freq="s")
+    for index, timestamp in enumerate(timestamps):
+        rows.append(
+            [
+                timestamp.isoformat().replace("+00:00", "Z"),
+                2.5 + index / 100,
+                500 + index,
+                "Open" if index % 2 else "Closed",
+            ]
+        )
+    pd.DataFrame(rows).to_excel(source, index=False, header=False)
+
+    loaded = load_swat_scheduled_file(
+        source,
+        attack_windows=(
+            SwatAttackWindow(
+                "synthetic scheduled attack",
+                "2026-01-01T00:01:00Z",
+                "2026-01-01T00:01:30Z",
+            ),
+        ),
+        start="2026-01-01T00:00:30Z",
+        end="2026-01-01T00:01:40Z",
+    )
+
+    assert list(loaded.columns[:2]) == ["timestamp", "is_attack"]
+    assert loaded["is_attack"].sum() > 0
+    assert loaded["timestamp"].min() >= pd.Timestamp("2026-01-01T00:00:30")
+    assert {"FIT_101", "LIT_101", "MV_101"}.issubset(loaded.columns)
+    assert set(loaded["MV_101"]) == {0.0, 1.0}
 
 
 def test_swat_detector_is_time_safe_and_detects_attack_event(tmp_path: Path) -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,29 @@ _LABEL_NAMES = {
     "class",
     "is_attack",
 }
+
+
+@dataclass(frozen=True)
+class SwatAttackWindow:
+    """Attack interval from an official SWaT collection note."""
+
+    name: str
+    start: str
+    end: str
+
+
+SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS: tuple[SwatAttackWindow, ...] = (
+    SwatAttackWindow("FIT401 spoofing", "2019-07-20T07:08:46Z", "2019-07-20T07:10:31Z"),
+    SwatAttackWindow("LIT301 spoofing", "2019-07-20T07:15:00Z", "2019-07-20T07:19:32Z"),
+    SwatAttackWindow("P601 unauthorized start", "2019-07-20T07:26:57Z", "2019-07-20T07:30:48Z"),
+    SwatAttackWindow(
+        "MV201 and P101 multi-point attack",
+        "2019-07-20T07:38:50Z",
+        "2019-07-20T07:46:20Z",
+    ),
+    SwatAttackWindow("MV501 unauthorized close", "2019-07-20T07:54:00Z", "2019-07-20T07:56:00Z"),
+    SwatAttackWindow("P301 unauthorized stop", "2019-07-20T08:02:56Z", "2019-07-20T08:16:18Z"),
+)
 
 
 def load_swat_file(
@@ -65,6 +89,52 @@ def load_swat_file(
     return frame
 
 
+def load_swat_scheduled_file(
+    path: str | Path,
+    *,
+    attack_windows: tuple[SwatAttackWindow, ...],
+    start: str | None = None,
+    end: str | None = None,
+    sample_stride: int = 1,
+) -> pd.DataFrame:
+    """Load a single SWaT run and derive labels from official attack windows."""
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(f"SWaT historian file not found: {source}")
+    if sample_stride <= 0:
+        raise ValueError("sample_stride must be positive")
+
+    raw = _read_scheduled_table(source)
+    if raw.empty:
+        raise ValueError(f"SWaT historian file contains no rows: {source}")
+    raw.columns = _deduplicate([_normalize_name(column) for column in raw.columns])
+    timestamp_column = _find_column(raw.columns, _TIMESTAMP_NAMES | {"gmt_0"})
+    if timestamp_column is None:
+        raise ValueError("Scheduled SWaT run must contain a timestamp column")
+
+    timestamp = _parse_timestamp(raw.pop(timestamp_column))
+    mask = pd.Series(True, index=raw.index)
+    if start is not None:
+        mask &= timestamp >= _timestamp_boundary(start)
+    if end is not None:
+        mask &= timestamp <= _timestamp_boundary(end)
+    raw = raw.loc[mask].reset_index(drop=True)
+    timestamp = timestamp.loc[mask].reset_index(drop=True)
+    labels = _labels_from_windows(timestamp, attack_windows)
+    numeric = _coerce_tags(raw)
+    if numeric.shape[1] < 2:
+        raise ValueError("SWaT file must contain at least two numeric sensor or actuator tags")
+    frame = pd.concat(
+        [
+            timestamp.rename("timestamp").reset_index(drop=True),
+            labels.rename("is_attack").reset_index(drop=True),
+            numeric,
+        ],
+        axis=1,
+    )
+    return frame.iloc[::sample_stride].reset_index(drop=True)
+
+
 def _read_table(path: Path) -> pd.DataFrame:
     if path.suffix.lower() in {".xlsx", ".xlsm"}:
         return pd.read_excel(path, engine="openpyxl")
@@ -74,6 +144,19 @@ def _read_table(path: Path) -> pd.DataFrame:
         return pd.read_csv(path, low_memory=False)
     except UnicodeDecodeError:
         return pd.read_csv(path, encoding="cp1252", low_memory=False)
+
+
+def _read_scheduled_table(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() not in {".xlsx", ".xlsm"}:
+        return _read_table(path)
+    raw = pd.read_excel(path, engine="openpyxl", header=None)
+    if len(raw) >= 4:
+        header = raw.iloc[1].where(raw.iloc[1].notna(), raw.iloc[2])
+        data = raw.iloc[3:].copy()
+        data.columns = header
+        data = data.dropna(axis=1, how="all")
+        return data
+    return pd.read_excel(path, engine="openpyxl")
 
 
 def _normalize_name(value: object) -> str:
@@ -100,10 +183,31 @@ def _find_column(columns: pd.Index, candidates: set[str]) -> str | None:
 
 
 def _parse_timestamp(values: pd.Series) -> pd.Series:
-    parsed = pd.to_datetime(values.astype(str).str.strip(), errors="coerce", dayfirst=True)
+    text = values.astype(str).str.strip()
+    parsed = pd.to_datetime(text, errors="coerce", utc=True, format="mixed")
+    if parsed.notna().sum() == 0:
+        parsed = pd.to_datetime(text, errors="coerce", dayfirst=True, utc=True, format="mixed")
     if parsed.notna().any():
-        return parsed.rename("timestamp")
+        return parsed.dt.tz_convert(None).rename("timestamp")
     return values.rename("timestamp")
+
+
+def _labels_from_windows(
+    timestamp: pd.Series, attack_windows: tuple[SwatAttackWindow, ...]
+) -> pd.Series:
+    labels = pd.Series(False, index=timestamp.index, dtype=bool)
+    for window in attack_windows:
+        start = _timestamp_boundary(window.start)
+        end = _timestamp_boundary(window.end)
+        labels |= (timestamp >= start) & (timestamp <= end)
+    return labels
+
+
+def _timestamp_boundary(value: str) -> pd.Timestamp:
+    parsed = pd.Timestamp(value)
+    if parsed.tzinfo is not None:
+        return parsed.tz_convert(None)
+    return parsed
 
 
 def _is_attack_label(value: object) -> bool:

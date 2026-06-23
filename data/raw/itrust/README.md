@@ -11,13 +11,15 @@ https://www.sutd.edu.sg/itrust/request-for-datasets/
 
 ## Phase 8 canonical experiment
 
-- Dataset: SWaT.A1 December 2015 historian data
-- Normal run: seven days of normal operation (prefer Normal version 1)
-- Attack run: four days containing 41 labeled attacks
-- Plant variables: 51 sensors and actuators
-- Required local inputs: one normal historian file and one labeled attack historian file
+- Dataset: SWaT.A4/A5 July 2019 historian data
+- Local workbook: `SWaT.A4 & A5_Jul 2019/SWaT_dataset_Jul 19 v2.xlsx`
+- Schedule source: `SWaT.A4 & A5_Jul 2019/SWaT data collection_20-07-2019 v2.pdf`
+- Clean training/calibration period: 2019-07-20 04:35:00 to 07:08:45 UTC
+- Evaluation period: 2019-07-20 07:08:46 to 08:16:18 UTC
+- Scheduled attacks: 6 documented attack windows
 - Credit: iTrust, Centre for Research in Cyber Security, Singapore University of Technology and
   Design
 
-Do not rename or move files until access is granted and the supplied archive structure has been
-inspected. File names have varied between releases; pass the actual local paths to the CLI.
+The larger SWaT.A1/A2 December 2015 archive remains supported if historian-only normal and attack
+files become available, but it is not required for the current Phase 8 validation. File names have
+varied between releases; pass the actual local paths to the CLI.

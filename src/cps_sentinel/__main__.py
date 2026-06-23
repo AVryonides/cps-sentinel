@@ -32,10 +32,12 @@ from cps_sentinel.scenarios.plotting import write_scenario_plot
 from cps_sentinel.simulation import run_simulation, summarize_simulation
 from cps_sentinel.simulation.plotting import write_simulation_plot
 from cps_sentinel.swat import (
+    SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS,
     SwatDetector,
     aggregate_swat_events,
     evaluate_swat_detection,
     load_swat_file,
+    load_swat_scheduled_file,
     write_swat_events,
 )
 from cps_sentinel.swat.plotting import write_swat_plot
@@ -130,9 +132,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     swat = commands.add_parser("swat", help="Run Phase 8 iTrust SWaT security validation")
     swat.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
-    swat.add_argument("--normal", required=True, help="Authorized normal historian CSV/XLSX")
+    swat.add_argument("--normal", help="Authorized normal historian CSV/XLSX")
+    swat.add_argument("--attack", help="Authorized labeled attack historian CSV/XLSX")
     swat.add_argument(
-        "--attack", required=True, help="Authorized labeled attack historian CSV/XLSX"
+        "--scheduled-run",
+        help="Authorized single-run historian CSV/XLSX labelled from an official schedule",
+    )
+    swat.add_argument(
+        "--schedule",
+        choices=["swat-a4-a5-jul-2019"],
+        help="Built-in official attack schedule used with --scheduled-run",
     )
     swat.add_argument(
         "--sample-stride",
@@ -322,12 +331,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.command == "swat":
-        normal = load_swat_file(args.normal, sample_stride=args.sample_stride)
-        attack = load_swat_file(
-            args.attack,
-            assume_attack=False,
-            sample_stride=args.sample_stride,
-        )
+        if args.scheduled_run:
+            if args.schedule != "swat-a4-a5-jul-2019":
+                raise SystemExit(
+                    "--scheduled-run currently requires --schedule swat-a4-a5-jul-2019"
+                )
+            normal = load_swat_scheduled_file(
+                args.scheduled_run,
+                attack_windows=SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS,
+                start="2019-07-20T04:35:00Z",
+                end="2019-07-20T07:08:45Z",
+                sample_stride=args.sample_stride,
+            )
+            attack = load_swat_scheduled_file(
+                args.scheduled_run,
+                attack_windows=SWAT_A4_A5_JUL_2019_ATTACK_WINDOWS,
+                start="2019-07-20T07:08:46Z",
+                end="2019-07-20T08:16:18Z",
+                sample_stride=args.sample_stride,
+            )
+        else:
+            if args.normal is None or args.attack is None:
+                raise SystemExit(
+                    "Provide either --normal and --attack, or --scheduled-run with --schedule"
+                )
+            normal = load_swat_file(args.normal, sample_stride=args.sample_stride)
+            attack = load_swat_file(
+                args.attack,
+                assume_attack=False,
+                sample_stride=args.sample_stride,
+            )
         swat_detector = SwatDetector(settings.swat, settings.random_seed).fit(normal)
         frame = swat_detector.detect(attack)
         swat_evaluation = evaluate_swat_detection(frame)
