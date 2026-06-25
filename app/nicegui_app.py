@@ -55,6 +55,7 @@ CSS = """
   --cyan: #42c6d7;
   --amber: #e5a93d;
   --red: #e66565;
+  --green: #55d18b;
 }
 html { scroll-behavior: smooth; background: var(--bg); }
 body, .q-page, .q-layout { background: var(--bg) !important; color: var(--text); }
@@ -84,6 +85,12 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .hero-title { font-size: clamp(32px, 4vw, 58px); font-weight: 620; letter-spacing: -.035em;
   line-height: 1.05; color: var(--text); max-width: 900px; margin-top: 14px; }
 .hero-copy { color: #aab6c3; font-size: 17px; line-height: 1.65; max-width: 780px; margin-top: 18px; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+  gap: 26px; width: 100%; align-items: end; }
+.hero-panel { background: linear-gradient(180deg, #111a24, #0d141c); border: 1px solid var(--line);
+  padding: 22px; border-radius: 5px; }
+.hero-panel-title { color: var(--text); font-size: 15px; font-weight: 650; }
+.hero-panel-copy { color: var(--muted); font-size: 13px; line-height: 1.58; margin-top: 8px; }
 .status-line { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
   padding: 15px 0; margin-top: 30px; }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red);
@@ -97,10 +104,22 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
   letter-spacing: .1em; text-transform: uppercase; }
 .metric-value { color: var(--text); font-size: 25px; font-weight: 590; margin-top: 13px; }
 .metric-note { color: #6f7e8d; font-size: 12px; margin-top: 7px; }
+.metric-help-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+  margin-top: 16px; width: 100%; }
+.metric-help { background: #0d141c; border: 1px solid var(--line); padding: 16px 18px; }
+.metric-help-title { color: var(--text); font-size: 13px; font-weight: 650; }
+.metric-help-copy { color: var(--muted); font-size: 12px; line-height: 1.55; margin-top: 7px; }
 .section { scroll-margin-top: 78px; padding-top: 76px; width: 100%; }
 .section-index { color: var(--cyan); font: 600 11px/1 ui-monospace, SFMono-Regular, monospace; }
 .section-title { color: var(--text); font-size: 28px; font-weight: 610; letter-spacing: -.02em; }
 .section-copy { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 780px; }
+.explain-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); width: 100%; margin-top: 28px; }
+.explain-card { background: #0d141c; padding: 22px; min-height: 154px; }
+.explain-kicker { color: var(--cyan); font: 650 10px/1 ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .14em; text-transform: uppercase; }
+.explain-title { color: var(--text); font-size: 16px; font-weight: 650; margin-top: 12px; }
+.explain-copy { color: var(--muted); font-size: 13px; line-height: 1.6; margin-top: 8px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
   padding: 24px; width: 100%; }
 .finding { background: #111a22; border-left: 3px solid var(--amber); padding: 26px 28px; width: 100%; }
@@ -109,6 +128,13 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .guide { background: #0d141c; border: 1px solid var(--line); padding: 16px 18px; width: 100%; }
 .guide-title { color: var(--text); font-size: 13px; font-weight: 650; }
 .guide-copy { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.data-boundary { background: rgba(66,198,215,.07); border: 1px solid rgba(66,198,215,.28);
+  color: #b9edf4; padding: 16px 18px; font-size: 13px; line-height: 1.55; width: 100%; }
+.outcome-row { display: grid; grid-template-columns: 120px 1fr; gap: 18px; border-top: 1px solid var(--line);
+  padding: 15px 0; width: 100%; }
+.outcome-label { color: var(--muted); font: 650 10px/1.5 ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em; text-transform: uppercase; }
+.outcome-copy { color: #c4ced8; font-size: 14px; line-height: 1.55; }
 .chart-wrap { background: var(--surface); border: 1px solid var(--line); padding: 8px; width: 100%; }
 .risk-box { background: var(--surface); border: 1px solid var(--line); padding: 28px; width: 100%; }
 .risk-score { font: 620 52px/1 ui-monospace, SFMono-Regular, monospace; color: var(--red); }
@@ -134,6 +160,7 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 @media (max-width: 1050px) {
   .page-shell { width: 100%; padding: 82px 24px 52px; }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric-help-grid, .explain-grid, .hero-grid { grid-template-columns: 1fr; }
   .mobile-menu { display: inline-flex !important; }
 }
 @media (max-width: 640px) {
@@ -172,20 +199,55 @@ def _reading_guide(title: str, copy: str) -> None:
         ui.label(copy).classes("guide-copy")
 
 
+def _explanation_card(kicker: str, title: str, copy: str) -> None:
+    with ui.column().classes("explain-card gap-0"):
+        ui.label(kicker).classes("explain-kicker")
+        ui.label(title).classes("explain-title")
+        ui.label(copy).classes("explain-copy")
+
+
+def _metric_help(items: tuple[tuple[str, str], ...]) -> None:
+    with ui.element("div").classes("metric-help-grid"):
+        for title, copy in items:
+            with ui.column().classes("metric-help gap-0"):
+                ui.label(title).classes("metric-help-title")
+                ui.label(copy).classes("metric-help-copy")
+
+
+def _outcome_row(label: str, copy: str) -> None:
+    with ui.element("div").classes("outcome-row"):
+        ui.label(label).classes("outcome-label")
+        ui.label(copy).classes("outcome-copy")
+
+
+def _hero_context_card(title: str, copy: str) -> None:
+    with ui.column().classes("hero-panel gap-0"):
+        ui.label(title).classes("hero-panel-title")
+        ui.label(copy).classes("hero-panel-copy")
+
+
 def _render_dashboard(result: DashboardResult) -> None:
     alert = result.primary_alert
     heading, summary = plain_language_summary(result)
 
     with ui.column().classes("w-full gap-0"):
-        with ui.column().classes("w-full gap-0"):
-            ui.label("CYBER-PHYSICAL SYSTEM MONITOR").classes("eyebrow")
-            ui.label("Understand what happened, why it matters, and what to do next.").classes(
-                "hero-title"
+        with ui.element("div").classes("hero-grid"):
+            with ui.column().classes("w-full gap-0"):
+                ui.label("CYBER-PHYSICAL SYSTEM MONITOR").classes("eyebrow")
+                ui.label(
+                    "A dashboard for explaining CPS incidents, not just plotting them."
+                ).classes("hero-title")
+                ui.label(
+                    "CPS Sentinel compares a simulated nanogrid with an independent digital twin. "
+                    "When the physical system, reported sensor values, and expected behavior stop "
+                    "agreeing, it turns the evidence into an operator-readable incident story."
+                ).classes("hero-copy")
+            _hero_context_card(
+                "What you are looking at",
+                "This page follows one scenario from raw plant behavior to detection, diagnosis, "
+                "risk score, and bounded response guidance. It is decision support only; no control "
+                "commands are sent from the dashboard.",
             )
-            ui.label(
-                "CPS Sentinel compares a simulated nanogrid with an independent digital twin. "
-                "When the two disagree persistently, it explains the evidence in operational terms."
-            ).classes("hero-copy")
             with ui.row().classes("status-line items-center gap-4 w-full"):
                 ui.element("span").classes("status-dot")
                 ui.label("Active event detected" if alert else "System operating normally").classes(
@@ -212,6 +274,39 @@ def _render_dashboard(result: DashboardResult) -> None:
                 f"{delay} step{'s' if delay != 1 else ''}",
                 f"{(delay or 0) * SETTINGS.simulation.timestep_minutes} minutes",
             )
+        _metric_help(
+            (
+                (
+                    "Risk score",
+                    "A 0-100 advisory score combining confidence, physical impact, duration, and safety proximity.",
+                ),
+                (
+                    "Affected component",
+                    "The component most consistent with the evidence. It is a diagnosis hypothesis, not a magic oracle.",
+                ),
+                (
+                    "Detection delay",
+                    "How long the detector waited after the ground-truth event began before raising a persistent alert.",
+                ),
+            )
+        )
+
+        with ui.element("div").classes("explain-grid"):
+            _explanation_card(
+                "Evidence layer",
+                "Physical system vs reported values",
+                "The dashboard separates what actually happened from what the controller was told.",
+            )
+            _explanation_card(
+                "Reasoning layer",
+                "Independent digital twin",
+                "A separate model predicts expected behavior, creating residual evidence when reality diverges.",
+            )
+            _explanation_card(
+                "Decision layer",
+                "Bounded operator guidance",
+                "Alerts explain likely impact and recommended checks without triggering autonomous control actions.",
+            )
 
         with ui.column().classes("section gap-6").props("id=overview"):
             _section_heading(
@@ -223,6 +318,20 @@ def _render_dashboard(result: DashboardResult) -> None:
             with ui.column().classes("finding gap-0"):
                 ui.label(heading).classes("finding-title")
                 ui.label(summary).classes("finding-copy")
+            with ui.column().classes("panel gap-0"):
+                ui.label("What this means operationally").classes("section-title")
+                _outcome_row(
+                    "Evidence",
+                    "The digital twin gives a clean reference. Sustained gaps between reported, physical, and expected values become investigation evidence.",
+                )
+                _outcome_row(
+                    "Impact",
+                    "The important question is not whether a chart looks unusual, but whether control decisions, grid exchange, or battery state changed.",
+                )
+                _outcome_row(
+                    "Response",
+                    "The system recommends checks and evidence-preservation steps; the operator remains responsible for any physical action.",
+                )
             with ui.row().classes("w-full gap-4"):
                 with ui.column().classes("panel gap-3 grow"):
                     ui.label("Scenario").classes("metric-label")
@@ -355,11 +464,30 @@ def _render_track_unavailable(title: str, state: ExternalTrackState, command: st
             "This view activates from generated local results. Raw research datasets remain "
             "outside the web interface and outside version control."
         ).classes("hero-copy")
+        with ui.element("div").classes("explain-grid"):
+            _explanation_card(
+                "Step 1",
+                "Keep raw data local",
+                "Place authorized datasets under data/raw. The dashboard never reads restricted archives directly.",
+            )
+            _explanation_card(
+                "Step 2",
+                "Generate processed evidence",
+                "Run the CLI command below to create a derived CSV/report that is safe for local visualization.",
+            )
+            _explanation_card(
+                "Step 3",
+                "Refresh dashboard",
+                "Reload this page after the command finishes; the track will switch from pending to ready.",
+            )
         with ui.column().classes("section gap-5"), ui.column().classes("empty-state gap-3"):
-            ui.label("Validation result not available").classes("finding-title")
+            ui.label("Validation result not available yet").classes("finding-title")
             ui.label(state.message).classes("finding-copy")
             ui.label("Run from the project terminal:").classes("metric-label")
             ui.code(command).classes("w-full")
+            ui.label(
+                "Do not upload restricted raw datasets to GitHub or this chat. Only derived local outputs are displayed here."
+            ).classes("data-boundary")
 
 
 def _render_health_dashboard(state: ExternalTrackState) -> None:
@@ -376,12 +504,18 @@ def _render_health_dashboard(state: ExternalTrackState) -> None:
     latest = result.frame.sort_values("cycle_index").groupby("battery_id").tail(1)
     critical = int((latest["health_status"] == "critical").sum())
     with ui.column().classes("w-full gap-0"):
-        ui.label("NASA BATTERY VALIDATION").classes("eyebrow")
-        ui.label("Battery degradation before failure.").classes("hero-title")
-        ui.label(
-            "This track follows measured discharge capacity over repeated cycles, estimates "
-            "remaining useful life, and translates degradation into maintenance-oriented alerts."
-        ).classes("hero-copy")
+        with ui.element("div").classes("hero-grid"):
+            with ui.column().classes("w-full gap-0"):
+                ui.label("NASA BATTERY VALIDATION").classes("eyebrow")
+                ui.label("Battery degradation explained before failure.").classes("hero-title")
+                ui.label(
+                    "This track follows measured discharge capacity over repeated cycles, estimates "
+                    "remaining useful life, and translates degradation into maintenance-oriented alerts."
+                ).classes("hero-copy")
+            _hero_context_card(
+                "Why this track matters",
+                "A CPS does not only fail through attacks. Components age. This view shows how the same dashboard language can explain health, forecast uncertainty, and maintenance priority.",
+            )
         with ui.row().classes("status-line items-center gap-4 w-full"):
             ui.element("span").classes("status-dot").style("background: var(--cyan)")
             ui.label("Real NASA validation loaded").classes("status-text track-ready")
@@ -394,6 +528,38 @@ def _render_health_dashboard(state: ExternalTrackState) -> None:
                 "RUL error",
                 f"{result.evaluation.mae_cycles:.2f} cycles",
                 f"{result.evaluation.evaluated_predictions} evaluated forecasts",
+            )
+        _metric_help(
+            (
+                (
+                    "State of health",
+                    "Remaining usable capacity compared with the configured rated capacity.",
+                ),
+                (
+                    "RUL error",
+                    "How far the remaining-life forecast was from the observed end-of-life cycle.",
+                ),
+                (
+                    "Critical latest state",
+                    "Batteries whose most recent cycle is at or below the configured critical SOH limit.",
+                ),
+            )
+        )
+        with ui.element("div").classes("explain-grid"):
+            _explanation_card(
+                "Measurement",
+                "Capacity comes from discharge tests",
+                "Each cycle records how much charge the battery could actually deliver.",
+            )
+            _explanation_card(
+                "Forecast",
+                "Remaining life is causal",
+                "The estimate at a cycle uses only data available up to that point, not future measurements.",
+            )
+            _explanation_card(
+                "Maintenance",
+                "Alerts prioritize attention",
+                "The dashboard summarizes which batteries are warning or critical and why.",
             )
 
         with ui.column().classes("section gap-6").props("id=health-evidence"):
@@ -408,6 +574,20 @@ def _render_health_dashboard(state: ExternalTrackState) -> None:
                 "A downward capacity trend means less stored energy is available. The dotted "
                 "observed-RUL line is retrospective evaluation evidence, not an input to forecasts.",
             )
+            with ui.column().classes("panel gap-0"):
+                ui.label("What this means operationally").classes("section-title")
+                _outcome_row(
+                    "Capacity",
+                    "Lower capacity means the same battery can support less useful work before needing charge or replacement.",
+                )
+                _outcome_row(
+                    "Forecast",
+                    "RUL is a planning estimate, useful for comparing cells and scheduling inspection, not a guarantee of exact failure time.",
+                )
+                _outcome_row(
+                    "Boundary",
+                    "The health track recommends maintenance review; it does not automatically retire or isolate equipment.",
+                )
             with ui.element("div").classes("chart-wrap"):
                 ui.plotly(build_health_dashboard_figure(result, SETTINGS)).classes("w-full")
 
@@ -417,15 +597,22 @@ def _render_health_dashboard(state: ExternalTrackState) -> None:
                 "Which batteries need attention?",
                 "Each row reflects the latest measured cycle and keeps recommendations advisory.",
             )
-            for alert in result.alerts:
-                with ui.column().classes("panel gap-3"):
-                    ui.label(f"{alert.battery_id} / {alert.health_status.upper()}").classes(
-                        "risk-level"
-                    )
-                    ui.label(f"SOH {alert.state_of_health:.1%}").classes("finding-title")
-                    ui.label(alert.physical_impact).classes("guide-copy")
-                    ui.label(alert.recommended_actions[0]).classes("action-copy")
-            ui.label(result.alerts[0].safety_note).classes("safety-note")
+            if result.alerts:
+                for alert in result.alerts:
+                    with ui.column().classes("panel gap-3"):
+                        ui.label(f"{alert.battery_id} / {alert.health_status.upper()}").classes(
+                            "risk-level"
+                        )
+                        ui.label(f"SOH {alert.state_of_health:.1%}").classes("finding-title")
+                        ui.label(alert.physical_impact).classes("guide-copy")
+                        ui.label(alert.recommended_actions[0]).classes("action-copy")
+                ui.label(result.alerts[0].safety_note).classes("safety-note")
+            else:
+                with ui.column().classes("finding gap-0"):
+                    ui.label("No battery requires urgent attention").classes("finding-title")
+                    ui.label(
+                        "The latest processed result did not produce warning or critical maintenance alerts."
+                    ).classes("finding-copy")
 
         ui.label("CPS Sentinel · NASA health validation · Prognostics are advisory").classes(
             "footer"
@@ -438,20 +625,30 @@ def _render_swat_dashboard(state: ExternalTrackState) -> None:
             "Industrial attacks in real process data.",
             state,
             "cps-sentinel swat --config config/default.yaml "
-            "--normal data/raw/itrust/<normal-file> "
-            "--attack data/raw/itrust/<attack-file> "
-            "--output data/processed/swat-security.csv",
+            '--scheduled-run "data/raw/itrust/SWaT.A4 & A5_Jul 2019/SWaT_dataset_Jul 19 v2.xlsx" '
+            "--schedule swat-a4-a5-jul-2019 "
+            "--output data/processed/swat-security.csv "
+            "--events data/processed/swat-security-events.json "
+            "--plot reports/figures/swat-security.html",
         )
         return
     result = state.result
     evaluation = result.evaluation
     with ui.column().classes("w-full gap-0"):
-        ui.label("ITRUST SWAT VALIDATION").classes("eyebrow")
-        ui.label("Industrial attacks in real process data.").classes("hero-title")
-        ui.label(
-            "This track learns normal relationships among water-treatment sensors and actuators, "
-            "then evaluates persistent deviations against labels withheld during detection."
-        ).classes("hero-copy")
+        with ui.element("div").classes("hero-grid"):
+            with ui.column().classes("w-full gap-0"):
+                ui.label("ITRUST SWAT VALIDATION").classes("eyebrow")
+                ui.label("Industrial attack evidence without exposing raw historian data.").classes(
+                    "hero-title"
+                )
+                ui.label(
+                    "This track learns normal relationships among water-treatment sensors and actuators, "
+                    "then evaluates persistent deviations against labels withheld during detection."
+                ).classes("hero-copy")
+            _hero_context_card(
+                "Current benchmark",
+                "The local Phase 8 result uses the official SWaT.A4/A5 July 2019 historian workbook and its companion attack schedule. The raw files remain local; the UI reads only derived processed outputs.",
+            )
         with ui.row().classes("status-line items-center gap-4 w-full"):
             ui.element("span").classes("status-dot").style("background: var(--cyan)")
             ui.label("Authorized SWaT validation loaded").classes("status-text track-ready")
@@ -464,6 +661,38 @@ def _render_swat_dashboard(state: ExternalTrackState) -> None:
                 "False-positive rate",
                 f"{evaluation.false_positive_rate:.2%}",
                 "Normal rows flagged",
+            )
+        _metric_help(
+            (
+                (
+                    "Point F1",
+                    "A row-by-row score combining precision and recall. Useful, but stricter than incident-level review.",
+                ),
+                (
+                    "Event recall",
+                    "The share of labeled attack windows with at least one overlapping persistent detection.",
+                ),
+                (
+                    "False-positive rate",
+                    "How often normal evaluation rows were flagged. Lower is better, but very low settings may miss attacks.",
+                ),
+            )
+        )
+        with ui.element("div").classes("explain-grid"):
+            _explanation_card(
+                "Training boundary",
+                "Only clean behavior calibrates the detector",
+                "Attack-window labels are not used to fit the model, scale features, or set thresholds.",
+            )
+            _explanation_card(
+                "Detection boundary",
+                "Scores become events through persistence",
+                "Single noisy samples are not enough; alerts require sustained abnormal behavior.",
+            )
+            _explanation_card(
+                "Data boundary",
+                "Restricted raw files stay outside Git",
+                "The dashboard reads generated local CSVs and reports, not the original iTrust archive.",
             )
 
         with ui.column().classes("section gap-6").props("id=swat-evidence"):
@@ -478,6 +707,23 @@ def _render_swat_dashboard(state: ExternalTrackState) -> None:
                 "The red attack trace is displayed after scoring. It never participates in model "
                 "training, clean-data calibration, or anomaly decisions.",
             )
+            ui.label(
+                "Restricted raw historian files are intentionally not exposed by the dashboard or committed to the repository."
+            ).classes("data-boundary")
+            with ui.column().classes("panel gap-0"):
+                ui.label("What this means operationally").classes("section-title")
+                _outcome_row(
+                    "Score",
+                    "A higher anomaly score means the current process state is farther from learned clean behavior.",
+                )
+                _outcome_row(
+                    "Label",
+                    "Attack labels are shown so we can evaluate the detector after the fact; they are not part of the detection decision.",
+                )
+                _outcome_row(
+                    "Investigation",
+                    "Top affected tags point an engineer toward sensors or actuators worth checking first.",
+                )
             with ui.element("div").classes("chart-wrap"):
                 ui.plotly(build_swat_dashboard_figure(result)).classes("w-full")
 
@@ -562,8 +808,10 @@ def build_page() -> None:
         )
         with ui.column().classes("mt-7 px-3 gap-2"):
             ui.label("Analysis pipeline").classes("metric-label")
-            ui.label("Simulation → Twin → Detection → Risk").classes("guide-copy")
-            ui.label("Labels are used only for evaluation.").classes("guide-copy")
+            ui.label("Simulation → Twin → Detection → Risk → Explanation").classes("guide-copy")
+            ui.label("Raw restricted datasets stay local; labels are evaluation-only.").classes(
+                "guide-copy"
+            )
 
     with ui.header().classes("h-16 items-center px-4"):
         ui.button(icon="menu", on_click=drawer.toggle).props(
@@ -571,7 +819,7 @@ def build_page() -> None:
         ).classes("mobile-menu").mark("mobile-menu")
         ui.label("CPS SENTINEL / UNIFIED OPERATIONS").classes("status-text")
         ui.space()
-        ui.label("PHASE 9").classes("status-text")
+        ui.label("PHASE 10").classes("status-text")
 
     with ui.column().classes("page-shell gap-0"):
 
