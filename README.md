@@ -100,7 +100,12 @@ python app/nicegui_app.py
 The dashboard opens automatically at `http://localhost:8080` and also prints the address in the
 terminal. Its unified navigation includes the nanogrid attack/fault demonstrator, NASA battery
 health validation, and iTrust SWaT security validation. External views read generated processed
-results only; restricted raw datasets are never exposed by the web layer.
+results only; restricted raw datasets are never exposed by the web layer. Phase 10 adds clearer
+explanation cards, metric interpretation, operational summaries, and stronger data-boundary
+messaging so the interface reads as a demo-ready incident story rather than a collection of plots.
+
+See [the Phase 10 dashboard polish note](docs/phase-10-dashboard-polish.md) for the explainability
+and data-boundary design choices.
 
 Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
 
