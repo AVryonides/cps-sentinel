@@ -24,6 +24,7 @@ from cps_sentinel.health import (
     evaluate_rul,
 )
 from cps_sentinel.health.plotting import build_health_figure
+from cps_sentinel.plot_style import lift_subplot_titles
 from cps_sentinel.risk import AlertRecord, assess_events
 from cps_sentinel.scenarios import ScenarioSpec, load_scenario
 from cps_sentinel.simulation import run_simulation
@@ -199,7 +200,7 @@ def build_swat_dashboard_figure(result: SwatDashboardResult) -> go.Figure:
     return _style_external_figure(
         figure,
         "Industrial process anomaly evidence",
-        top_margin=155,
+        top_margin=145,
     )
 
 
@@ -289,6 +290,7 @@ def build_consequence_figure(result: DashboardResult, settings: Settings) -> go.
         vertical_spacing=0.13,
         subplot_titles=("Grid exchange", "Battery state of charge"),
     )
+    lift_subplot_titles(figure, yshift=22)
     for column, name, color, dash in (
         ("grid_power_kw", "Observed grid power", AMBER, None),
         ("expected_grid_power_kw", "Expected grid power", BLUE, "dash"),
@@ -355,6 +357,7 @@ def build_detection_figure(result: DashboardResult) -> go.Figure:
         vertical_spacing=0.15,
         subplot_titles=("Difference between observation and twin", "Detector confidence"),
     )
+    lift_subplot_titles(figure, yshift=22)
     for column, name, color in (
         ("pv_residual_kw", "PV difference", AMBER),
         ("grid_power_residual_kw", "Grid difference", RED),
@@ -438,8 +441,14 @@ def _finish_figure(
         font={"family": "Inter, system-ui, sans-serif", "color": TEXT_COLOR},
         height=height,
         hovermode="x unified",
-        margin={"l": 58, "r": 24, "t": 72, "b": 48},
-        legend={"orientation": "h", "y": 1.07, "x": 0},
+        margin={"l": 58, "r": 24, "t": 98, "b": 112},
+        legend={
+            "orientation": "h",
+            "x": 0,
+            "xanchor": "left",
+            "y": -0.16,
+            "yanchor": "top",
+        },
     )
     figure.update_xaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
     figure.update_yaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
@@ -448,7 +457,7 @@ def _finish_figure(
     return figure
 
 
-def _style_external_figure(figure: go.Figure, title: str, top_margin: int = 72) -> go.Figure:
+def _style_external_figure(figure: go.Figure, title: str, top_margin: int = 130) -> go.Figure:
     figure.update_layout(
         title={"text": title, "font": {"size": 18, "color": TEXT_COLOR}},
         template="plotly_dark",
@@ -456,7 +465,14 @@ def _style_external_figure(figure: go.Figure, title: str, top_margin: int = 72) 
         plot_bgcolor=PLOT_BACKGROUND,
         font={"family": "Inter, system-ui, sans-serif", "color": TEXT_COLOR},
         hovermode="x unified",
-        margin={"l": 58, "r": 24, "t": top_margin, "b": 48},
+        margin={"l": 58, "r": 24, "t": top_margin, "b": 112},
+        legend={
+            "orientation": "h",
+            "x": 0,
+            "xanchor": "left",
+            "y": -0.16,
+            "yanchor": "top",
+        },
     )
     figure.update_xaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
     figure.update_yaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)

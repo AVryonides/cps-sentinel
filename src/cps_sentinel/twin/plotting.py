@@ -8,6 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
+
 
 def build_twin_figure(frame: pd.DataFrame) -> go.Figure:
     """Build synchronized observed-versus-expected and residual panels."""
@@ -23,6 +25,7 @@ def build_twin_figure(frame: pd.DataFrame) -> go.Figure:
             "Signed residuals",
         ),
     )
+    lift_subplot_titles(figure)
     _add_pair(figure, frame, 1, "pv_kw", "expected_pv_kw", "PV")
     _add_pair(figure, frame, 2, "grid_power_kw", "expected_grid_power_kw", "Grid")
     _add_pair(figure, frame, 3, "battery_soc", "expected_battery_soc", "SOC", scale=100)
@@ -41,12 +44,10 @@ def build_twin_figure(frame: pd.DataFrame) -> go.Figure:
     figure.update_yaxes(title_text="Power (kW)", row=2, col=1)
     figure.update_yaxes(title_text="SOC (%)", range=[0, 100], row=3, col=1)
     figure.update_yaxes(title_text="Residual", row=4, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title="CPS Sentinel - Phase 2 digital twin",
-        template="plotly_white",
         height=1000,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.04},
     )
     return figure
 

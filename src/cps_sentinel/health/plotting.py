@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from cps_sentinel.config import HealthConfig
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
 
 
 def build_health_figure(frame: pd.DataFrame, config: HealthConfig) -> go.Figure:
@@ -24,6 +25,7 @@ def build_health_figure(frame: pd.DataFrame, config: HealthConfig) -> go.Figure:
             "Causal remaining-useful-life estimate",
         ),
     )
+    lift_subplot_titles(figure)
     colors = ("#42C6D7", "#E5A93D", "#6E9CF5", "#E66565")
     for (battery_id, rows), color in zip(
         frame.groupby("battery_id", sort=True), colors, strict=False
@@ -95,12 +97,10 @@ def build_health_figure(frame: pd.DataFrame, config: HealthConfig) -> go.Figure:
     figure.update_yaxes(title_text="SOH (%)", row=2, col=1)
     figure.update_yaxes(title_text="Cycles", row=3, col=1)
     figure.update_xaxes(title_text="Discharge cycle", row=3, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title="CPS Sentinel - Phase 7 NASA battery health validation",
-        template="plotly_white",
         height=1050,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.04},
     )
     return figure
 

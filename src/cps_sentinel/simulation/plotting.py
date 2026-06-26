@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from cps_sentinel.config import BatteryConfig
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
 
 
 def build_simulation_figure(frame: pd.DataFrame, battery: BatteryConfig) -> go.Figure:
@@ -20,6 +21,7 @@ def build_simulation_figure(frame: pd.DataFrame, battery: BatteryConfig) -> go.F
         vertical_spacing=0.08,
         subplot_titles=("PV and load", "Battery and grid power", "Battery state of charge"),
     )
+    lift_subplot_titles(figure)
     figure.add_trace(
         go.Scatter(x=frame["timestamp"], y=frame["pv_kw"], name="PV", line={"color": "#E0A11A"}),
         row=1,
@@ -81,12 +83,10 @@ def build_simulation_figure(frame: pd.DataFrame, battery: BatteryConfig) -> go.F
     figure.update_yaxes(title_text="Power (kW)", row=1, col=1)
     figure.update_yaxes(title_text="Power (kW)", row=2, col=1)
     figure.update_yaxes(title_text="SOC (%)", range=[0, 100], row=3, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title="CPS Sentinel - Phase 1 nanogrid simulation",
-        template="plotly_white",
         height=850,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.05},
     )
     return figure
 
