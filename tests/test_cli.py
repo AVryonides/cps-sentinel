@@ -298,3 +298,42 @@ def test_swat_scheduled_run_command_writes_detection_events_and_plot(tmp_path: P
     assert plot.is_file()
     assert frame["is_attack"].sum() > 0
     assert frame["detected"].sum() > 0
+
+
+def test_demo_command_writes_reproducible_report_and_manifest(tmp_path: Path) -> None:
+    output = tmp_path / "demo"
+
+    exit_code = main(
+        [
+            "demo",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scenario",
+            str(ROOT / "config" / "scenarios" / "pv-false-data-injection.yaml"),
+            "--output-dir",
+            str(output),
+            "--health-result",
+            str(tmp_path / "missing-health.csv"),
+            "--swat-result",
+            str(tmp_path / "missing-swat.csv"),
+        ]
+    )
+
+    report = output / "demo-summary.md"
+    manifest = output / "demo-manifest.json"
+    detection = output / "nanogrid-detection.csv"
+    events = output / "nanogrid-events.json"
+    alerts = output / "nanogrid-alerts.json"
+
+    assert exit_code == 0
+    assert report.is_file()
+    assert manifest.is_file()
+    assert detection.is_file()
+    assert events.is_file()
+    assert alerts.is_file()
+    report_text = report.read_text(encoding="utf-8")
+    assert "CPS Sentinel reproducible demo" in report_text
+    assert "Nanogrid attack/fault demonstrator" in report_text
+    assert "NASA battery health validation" in report_text
+    assert "iTrust SWaT security validation" in report_text
+    assert "Raw NASA and iTrust/SWaT files are not copied" in report_text

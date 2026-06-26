@@ -10,6 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 from cps_sentinel.config import load_settings
+from cps_sentinel.demo import run_demo_workflow
 from cps_sentinel.detection import (
     HybridDetector,
     aggregate_events,
@@ -160,6 +161,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination aggregated event JSON",
     )
     swat.add_argument("--plot", help="Optional destination for an interactive HTML report")
+
+    demo = commands.add_parser("demo", help="Run the Phase 11 reproducible local demo workflow")
+    demo.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    demo.add_argument(
+        "--scenario",
+        default="config/scenarios/pv-false-data-injection.yaml",
+        help="Flagship scenario YAML used for the nanogrid demo",
+    )
+    demo.add_argument(
+        "--output-dir",
+        default="reports/demo",
+        help="Directory for local demo report, manifest, CSV, JSON, and HTML artifacts",
+    )
+    demo.add_argument(
+        "--health-result",
+        default="data/processed/nasa-battery-health.csv",
+        help="Optional processed NASA health CSV to summarize if present",
+    )
+    demo.add_argument(
+        "--swat-result",
+        default="data/processed/swat-security.csv",
+        help="Optional processed SWaT security CSV to summarize if present",
+    )
     return parser
 
 
@@ -386,6 +410,28 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Aggregated detection events: {len(swat_events)}")
         print(f"Row-level output: {output}")
         print(f"Event output: {events_path}")
+        return 0
+
+    if args.command == "demo":
+        demo_result = run_demo_workflow(
+            root=Path.cwd(),
+            settings=settings,
+            scenario_path=Path(args.scenario),
+            output_dir=Path(args.output_dir),
+            health_result_path=Path(args.health_result),
+            swat_result_path=Path(args.swat_result),
+        )
+        print("Reproducible demo complete")
+        print(f"Output directory: {demo_result.output_dir}")
+        print(f"Summary report: {demo_result.report_path}")
+        print(f"Manifest: {demo_result.manifest_path}")
+        for track in demo_result.tracks:
+            print(f"{track.name}: {track.status}")
+            if track.metrics:
+                metrics = ", ".join(f"{key}={value}" for key, value in track.metrics.items())
+                print(f"  {metrics}")
+            if track.next_step:
+                print(f"  Next step: {track.next_step}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes

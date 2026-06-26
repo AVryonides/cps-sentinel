@@ -107,6 +107,19 @@ messaging so the interface reads as a demo-ready incident story rather than a co
 See [the Phase 10 dashboard polish note](docs/phase-10-dashboard-polish.md) for the explainability
 and data-boundary design choices.
 
+Generate a reproducible local demo bundle:
+
+```bash
+cps-sentinel demo \
+  --config config/default.yaml \
+  --output-dir reports/demo
+```
+
+This writes a local summary report, manifest, nanogrid CSV/JSON outputs, and interactive HTML
+reports under `reports/demo/`. If NASA or SWaT processed outputs already exist locally, they are
+summarized too; otherwise the report records the exact commands needed to generate them. See
+[the Phase 11 reproducible demo note](docs/phase-11-reproducible-demo.md) for details.
+
 Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
 
 ```bash

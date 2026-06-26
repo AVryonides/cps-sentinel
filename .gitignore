@@ -28,3 +28,4 @@ data/simulated/**/*
 models/
 reports/figures/**/*
 !reports/figures/.gitkeep
+reports/demo/**/*
