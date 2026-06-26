@@ -417,7 +417,7 @@ def _add_event_window(
         "opacity": 0.10,
         "line_width": 0,
         "annotation_text": "Event active",
-        "annotation_position": "top left",
+        "annotation_position": "top",
     }
     if rows is None:
         figure.add_vrect(**kwargs)

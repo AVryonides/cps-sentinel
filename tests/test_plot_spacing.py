@@ -36,7 +36,7 @@ def test_standalone_reports_reserve_space_for_titles_and_legends() -> None:
     figures = (
         build_simulation_figure(normal, settings.simulation.battery),
         build_twin_figure(normal),
-        build_scenario_figure(attacked),
+        scenario_figure := build_scenario_figure(attacked),
         build_detection_figure(detected),
         build_risk_figure(detected, alerts, settings.simulation.battery),
         build_health_figure(_health_frame(settings), settings.health),
@@ -50,6 +50,14 @@ def test_standalone_reports_reserve_space_for_titles_and_legends() -> None:
         assert figure.layout.legend.y <= -0.16
         assert figure.layout.legend.yanchor == "top"
         assert figure.layout.title.y >= 0.98
+
+    scenario_annotations = [
+        annotation
+        for annotation in scenario_figure.layout.annotations
+        if annotation.text == "PV sensor false-data injection"
+    ]
+    assert scenario_annotations
+    assert all(annotation.xanchor == "center" for annotation in scenario_annotations)
 
 
 def _health_frame(settings):

@@ -140,6 +140,13 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .risk-score { font: 620 52px/1 ui-monospace, SFMono-Regular, monospace; color: var(--red); }
 .risk-level { color: var(--red); font: 650 11px/1 ui-monospace, SFMono-Regular, monospace;
   letter-spacing: .12em; text-transform: uppercase; }
+.risk-meter { background: #0b1119; border: 1px solid rgba(230,101,101,.28); height: 14px;
+  overflow: hidden; width: 100%; }
+.risk-meter-fill { background: linear-gradient(90deg, #e5a93d, #e66565); height: 100%; }
+.risk-meter-meta { display: flex; gap: 18px; justify-content: flex-start; color: var(--muted);
+  font: 650 10px/1 ui-monospace, SFMono-Regular, monospace; letter-spacing: .09em;
+  text-transform: uppercase; width: 100%; }
+.risk-meter-value { color: #d6e0ea; }
 .action-row { display: grid; grid-template-columns: 36px 1fr; gap: 14px; border-top: 1px solid var(--line);
   padding: 17px 0; width: 100%; }
 .action-number { color: var(--cyan); font: 600 12px/1.5 ui-monospace, SFMono-Regular, monospace; }
@@ -408,9 +415,13 @@ def _render_dashboard(result: DashboardResult) -> None:
                     ui.label(f"{alert.risk_level.upper()} RISK").classes("risk-level")
                     ui.label(f"{alert.risk_score:.1f}").classes("risk-score")
                     ui.label(alert.physical_impact).classes("guide-copy")
-                    ui.linear_progress(value=alert.risk_score / 100).props(
-                        "color=negative track-color=blue-grey-10 size=6px"
-                    ).classes("w-full")
+                    with ui.element("div").classes("risk-meter"):
+                        ui.element("div").classes("risk-meter-fill").style(
+                            f"width: {min(max(alert.risk_score, 0), 100):.1f}%"
+                        )
+                    with ui.element("div").classes("risk-meter-meta"):
+                        ui.label("Risk intensity")
+                        ui.label(f"{alert.risk_score:.1f} / 100").classes("risk-meter-value")
                 with ui.column().classes("panel gap-0"):
                     ui.label("Recommended sequence").classes("section-title")
                     for number, action in enumerate(alert.recommended_actions, start=1):

@@ -63,6 +63,14 @@ def test_explanatory_figures_mark_event_window(flagship_result) -> None:
     assert all(figure.layout.margin.t >= 98 for figure in figures)
     assert all(figure.layout.margin.b >= 112 for figure in figures)
     assert all(figure.layout.legend.y <= -0.16 for figure in figures)
+    event_annotations = [
+        annotation
+        for figure in figures
+        for annotation in figure.layout.annotations
+        if annotation.text == "Event active"
+    ]
+    assert event_annotations
+    assert all(annotation.xanchor == "center" for annotation in event_annotations)
     assert figures[0].layout.title.text == "Did the sensor tell the truth?"
 
 
@@ -149,6 +157,9 @@ async def test_nicegui_page_exposes_complete_explanatory_story() -> None:
         await user.should_see("What changed in the nanogrid?")
         await user.should_see("Why was an alert raised?")
         await user.should_see("What should happen next?")
+        await user.should_see("Risk intensity")
+        await user.should_see("95.2 / 100")
+        await user.should_not_see("0.9520000000000001")
         await user.should_see("Terms used on this page")
         await user.should_not_see("PHASE 10")
         await user.should_see(marker="mobile-menu")
