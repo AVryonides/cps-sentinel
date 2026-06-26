@@ -26,6 +26,7 @@ from cps_sentinel.health import (
     write_health_alerts,
 )
 from cps_sentinel.health.plotting import write_health_plot
+from cps_sentinel.incident_report import run_incident_report
 from cps_sentinel.risk import assess_events, write_alerts
 from cps_sentinel.risk.plotting import write_risk_plot
 from cps_sentinel.scenarios import load_scenario, summarize_scenario
@@ -183,6 +184,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--swat-result",
         default="data/processed/swat-security.csv",
         help="Optional processed SWaT security CSV to summarize if present",
+    )
+
+    report = commands.add_parser("report", help="Run the Phase 13 operator incident report export")
+    report.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    report.add_argument(
+        "--scenario",
+        default="config/scenarios/pv-false-data-injection.yaml",
+        help="Scenario YAML used to generate the incident report",
+    )
+    report.add_argument(
+        "--output",
+        default="reports/incidents/nanogrid-incident-report.md",
+        help="Destination Markdown incident report",
     )
     return parser
 
@@ -432,6 +446,19 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"  {metrics}")
             if track.next_step:
                 print(f"  Next step: {track.next_step}")
+        return 0
+
+    if args.command == "report":
+        incident_report = run_incident_report(
+            settings=settings,
+            scenario_path=Path(args.scenario),
+            output_path=Path(args.output),
+        )
+        print("Operator incident report complete")
+        print(f"Scenario: {incident_report.scenario_name}")
+        print(f"Alerts: {incident_report.alerts}")
+        print(f"Primary risk: {incident_report.primary_risk}")
+        print(f"Report: {incident_report.report_path}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes

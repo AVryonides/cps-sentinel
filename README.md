@@ -156,6 +156,19 @@ reports under `reports/demo/`. If NASA or SWaT processed outputs already exist l
 summarized too; otherwise the report records the exact commands needed to generate them. See
 [the Phase 11 reproducible demo note](docs/phase-11-reproducible-demo.md) for details.
 
+Generate an operator-facing incident report:
+
+```bash
+cps-sentinel report \
+  --config config/default.yaml \
+  --scenario config/scenarios/pv-false-data-injection.yaml \
+  --output reports/incidents/nanogrid-incident-report.md
+```
+
+This writes a local Markdown report with an executive summary, detection metrics, primary alert,
+evidence, risk-factor breakdown, recommended operator sequence, and safety boundary. See
+[the Phase 13 incident-report note](docs/phase-13-incident-report.md) for details.
+
 ## Repository map
 
 | Path | Purpose |
@@ -166,6 +179,7 @@ summarized too; otherwise the report records the exact commands needed to genera
 | `config/scenarios/` | Reproducible attack/fault scenario definitions |
 | `docs/` | Phase notes, architecture notes, project brief, and CV summary |
 | `reports/demo/` | Local generated demo artifacts; ignored by Git |
+| `reports/incidents/` | Local generated incident reports; ignored by Git |
 | `data/raw/` | Local-only restricted datasets; ignored by Git |
 
 Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
