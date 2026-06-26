@@ -337,3 +337,27 @@ def test_demo_command_writes_reproducible_report_and_manifest(tmp_path: Path) ->
     assert "NASA battery health validation" in report_text
     assert "iTrust SWaT security validation" in report_text
     assert "Raw NASA and iTrust/SWaT files are not copied" in report_text
+
+
+def test_report_command_writes_operator_incident_report(tmp_path: Path) -> None:
+    output = tmp_path / "incident.md"
+
+    exit_code = main(
+        [
+            "report",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scenario",
+            str(ROOT / "config" / "scenarios" / "pv-false-data-injection.yaml"),
+            "--output",
+            str(output),
+        ]
+    )
+
+    report_text = output.read_text(encoding="utf-8")
+    assert exit_code == 0
+    assert "CPS Sentinel operator incident report" in report_text
+    assert "Executive summary" in report_text
+    assert "Risk score: **95.2 / 100**" in report_text
+    assert "Recommended operator sequence" in report_text
+    assert "Safety boundary" in report_text
