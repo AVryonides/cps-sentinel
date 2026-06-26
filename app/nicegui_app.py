@@ -818,8 +818,6 @@ def build_page() -> None:
             "flat round aria-label=Open_navigation"
         ).classes("mobile-menu").mark("mobile-menu")
         ui.label("CPS SENTINEL / UNIFIED OPERATIONS").classes("status-text")
-        ui.space()
-        ui.label("PHASE 10").classes("status-text")
 
     with ui.column().classes("page-shell gap-0"):
 

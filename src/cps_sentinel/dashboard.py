@@ -196,7 +196,11 @@ def build_health_dashboard_figure(result: HealthDashboardResult, settings: Setti
 def build_swat_dashboard_figure(result: SwatDashboardResult) -> go.Figure:
     """Restyle the Phase 8 report for the unified dark operations interface."""
     figure = build_swat_figure(result.frame, list(result.events), result.evaluation)
-    return _style_external_figure(figure, "Industrial process anomaly evidence")
+    return _style_external_figure(
+        figure,
+        "Industrial process anomaly evidence",
+        top_margin=155,
+    )
 
 
 def plain_language_summary(result: DashboardResult) -> tuple[str, str]:
@@ -444,7 +448,7 @@ def _finish_figure(
     return figure
 
 
-def _style_external_figure(figure: go.Figure, title: str) -> go.Figure:
+def _style_external_figure(figure: go.Figure, title: str, top_margin: int = 72) -> go.Figure:
     figure.update_layout(
         title={"text": title, "font": {"size": 18, "color": TEXT_COLOR}},
         template="plotly_dark",
@@ -452,7 +456,7 @@ def _style_external_figure(figure: go.Figure, title: str) -> go.Figure:
         plot_bgcolor=PLOT_BACKGROUND,
         font={"family": "Inter, system-ui, sans-serif", "color": TEXT_COLOR},
         hovermode="x unified",
-        margin={"l": 58, "r": 24, "t": 72, "b": 48},
+        margin={"l": 58, "r": 24, "t": top_margin, "b": 48},
     )
     figure.update_xaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
     figure.update_yaxes(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR)
