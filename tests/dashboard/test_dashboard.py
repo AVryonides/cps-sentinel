@@ -122,6 +122,7 @@ def test_swat_dashboard_loads_derived_result_without_raw_data(tmp_path: Path) ->
     assert isinstance(state.result, SwatDashboardResult)
     figure = build_swat_dashboard_figure(state.result)
     assert figure.layout.paper_bgcolor == "#101720"
+    assert figure.layout.margin.t == 155
     assert state.result.evaluation.event_recall == 1.0
     assert state.result.events[0].top_affected_tags == ("FIT101", "LIT101")
 
@@ -145,6 +146,7 @@ async def test_nicegui_page_exposes_complete_explanatory_story() -> None:
         await user.should_see("Why was an alert raised?")
         await user.should_see("What should happen next?")
         await user.should_see("Terms used on this page")
+        await user.should_not_see("PHASE 10")
         await user.should_see(marker="mobile-menu")
         await user.should_see(marker="scenario-select")
         await user.should_see(marker="mode-nanogrid")

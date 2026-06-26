@@ -2,6 +2,10 @@
 
 **Digital Twin-Based Security and Health Monitoring for Cyber-Physical Systems**
 
+[![CI](https://github.com/AVryonides/cps-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/AVryonides/cps-sentinel/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11--3.13-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 CPS Sentinel is a portfolio-grade research prototype for detecting, explaining, and
 responding to faults and cyberattacks in cyber-physical systems. Its central system is a
 simulated smart nanogrid paired with a physics-aware digital twin.
@@ -10,7 +14,39 @@ NASA battery data provides an external health-prognostics validation track. The 
 SWaT dataset provides a separate industrial attack-detection validation track. These
 tracks share evaluation and alert interfaces; they are not treated as one physical system.
 
-[View the overall architecture as a PDF](output/pdf/cps-sentinel-overall-architecture.pdf).
+The project is built to demonstrate an end-to-end CPS engineering workflow: simulation,
+digital-twin prediction, attack/fault injection, hybrid anomaly detection, risk scoring,
+operator guidance, dashboard explainability, and reproducible demo packaging.
+
+- [One-page project brief](docs/project-brief.md)
+- [CV-ready project summary](docs/cv-project-summary.md)
+- [Overall architecture PDF](output/pdf/cps-sentinel-overall-architecture.pdf)
+
+## What this project demonstrates
+
+- A physics-aware nanogrid simulator with PV generation, load, battery state of charge, and
+  grid exchange.
+- An independent digital twin that produces expected behavior and residual evidence.
+- Scenario-driven cyberattack/fault injection with ground-truth labels kept separate from
+  detection.
+- Hybrid detection using robust physical thresholds, statistical novelty, and temporal
+  persistence.
+- Risk-ranked, bounded response recommendations for human operators.
+- External validation tracks for NASA battery prognostics and iTrust SWaT industrial
+  attack detection.
+- A NiceGUI operations dashboard designed for explainability, not just charts.
+- A reproducible `cps-sentinel demo` workflow that regenerates local evidence artifacts.
+
+## Current validation snapshot
+
+| Track | Dataset / source | Current result |
+| --- | --- | --- |
+| Nanogrid attack demo | Deterministic smart-nanogrid scenario | F1 0.972, risk score 95.2/100, one persistent incident |
+| Battery health | NASA battery aging data | 4 batteries, 636 discharge cycles, RUL MAE 8.99 cycles |
+| Industrial security | iTrust SWaT.A4/A5 July 2019 | 5/6 scheduled attacks detected, point F1 0.446, FPR 11.93% |
+
+The SWaT point-level score is intentionally reported honestly: current performance is useful at
+incident/event level, while point recall remains a future-improvement target.
 
 ## Planned vertical slice
 
@@ -100,9 +136,9 @@ python app/nicegui_app.py
 The dashboard opens automatically at `http://localhost:8080` and also prints the address in the
 terminal. Its unified navigation includes the nanogrid attack/fault demonstrator, NASA battery
 health validation, and iTrust SWaT security validation. External views read generated processed
-results only; restricted raw datasets are never exposed by the web layer. Phase 10 adds clearer
+results only; restricted raw datasets are never exposed by the web layer. The interface uses
 explanation cards, metric interpretation, operational summaries, and stronger data-boundary
-messaging so the interface reads as a demo-ready incident story rather than a collection of plots.
+messaging so the dashboard reads as a demo-ready incident story rather than a collection of plots.
 
 See [the Phase 10 dashboard polish note](docs/phase-10-dashboard-polish.md) for the explainability
 and data-boundary design choices.
@@ -119,6 +155,18 @@ This writes a local summary report, manifest, nanogrid CSV/JSON outputs, and int
 reports under `reports/demo/`. If NASA or SWaT processed outputs already exist locally, they are
 summarized too; otherwise the report records the exact commands needed to generate them. See
 [the Phase 11 reproducible demo note](docs/phase-11-reproducible-demo.md) for details.
+
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| `src/cps_sentinel/` | Simulation, twin, detection, risk, health, SWaT, and demo workflow code |
+| `app/nicegui_app.py` | Unified NiceGUI operations dashboard |
+| `config/default.yaml` | Main model, detector, risk, and health configuration |
+| `config/scenarios/` | Reproducible attack/fault scenario definitions |
+| `docs/` | Phase notes, architecture notes, project brief, and CV summary |
+| `reports/demo/` | Local generated demo artifacts; ignored by Git |
+| `data/raw/` | Local-only restricted datasets; ignored by Git |
 
 Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
 

@@ -30,6 +30,7 @@ def build_swat_figure(
         ),
         row_heights=(0.48, 0.24, 0.28),
     )
+    figure.update_annotations(yshift=30)
     figure.add_trace(
         go.Scatter(x=x, y=frame["anomaly_score"], name="Anomaly score", line={"color": "#42C6D7"}),
         row=1,
@@ -95,7 +96,8 @@ def build_swat_figure(
         template="plotly_white",
         height=1000,
         hovermode="x unified",
-        legend={"orientation": "h", "y": 1.04},
+        legend={"orientation": "h", "y": 1.14, "x": 0},
+        margin={"t": 155},
     )
     return figure
 
