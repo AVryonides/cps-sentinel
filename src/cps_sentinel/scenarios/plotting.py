@@ -58,7 +58,7 @@ def build_scenario_figure(frame: pd.DataFrame) -> go.Figure:
             opacity=0.10,
             line_width=0,
             annotation_text=str(active["scenario_name"].iloc[0]),
-            annotation_position="top left",
+            annotation_position="top",
             row="all",
             col=1,
         )
