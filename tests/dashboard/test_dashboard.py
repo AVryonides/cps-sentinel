@@ -60,6 +60,9 @@ def test_explanatory_figures_mark_event_window(flagship_result) -> None:
 
     assert all(figure.layout.paper_bgcolor == "#101720" for figure in figures)
     assert all(figure.layout.shapes for figure in figures)
+    assert all(figure.layout.margin.t >= 98 for figure in figures)
+    assert all(figure.layout.margin.b >= 112 for figure in figures)
+    assert all(figure.layout.legend.y <= -0.16 for figure in figures)
     assert figures[0].layout.title.text == "Did the sensor tell the truth?"
 
 
@@ -94,6 +97,7 @@ def test_health_dashboard_loads_processed_boundary_and_builds_dark_figure(tmp_pa
     assert isinstance(state.result, HealthDashboardResult)
     figure = build_health_dashboard_figure(state.result, settings)
     assert figure.layout.paper_bgcolor == "#101720"
+    assert figure.layout.margin.t == 130
     assert state.result.alerts[0].health_status == "critical"
 
 
@@ -122,7 +126,7 @@ def test_swat_dashboard_loads_derived_result_without_raw_data(tmp_path: Path) ->
     assert isinstance(state.result, SwatDashboardResult)
     figure = build_swat_dashboard_figure(state.result)
     assert figure.layout.paper_bgcolor == "#101720"
-    assert figure.layout.margin.t == 155
+    assert figure.layout.margin.t == 145
     assert state.result.evaluation.event_recall == 1.0
     assert state.result.events[0].top_affected_tags == ("FIT101", "LIT101")
 

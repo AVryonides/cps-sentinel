@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from cps_sentinel.config import BatteryConfig
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
 from cps_sentinel.risk.assessment import AlertRecord
 
 
@@ -28,6 +29,7 @@ def build_risk_figure(
             "Event risk score (0-100)",
         ),
     )
+    lift_subplot_titles(figure)
     figure.add_trace(
         go.Scatter(x=frame["timestamp"], y=frame["battery_soc"], name="Observed SOC"),
         row=1,
@@ -98,12 +100,10 @@ def build_risk_figure(
     figure.update_yaxes(title_text="Residual (kW)", row=2, col=1)
     figure.update_yaxes(title_text="Confidence", range=[0, 1.05], row=3, col=1)
     figure.update_yaxes(title_text="Risk", range=[0, 105], row=4, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title="CPS Sentinel - Phase 5 risk-ranked decision support",
-        template="plotly_white",
         height=1050,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.04},
     )
     return figure
 

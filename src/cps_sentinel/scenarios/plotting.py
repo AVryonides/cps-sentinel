@@ -8,6 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
+
 
 def build_scenario_figure(frame: pd.DataFrame) -> go.Figure:
     """Build a synchronized view of sensing, commands, physical impact, and residuals."""
@@ -23,6 +25,7 @@ def build_scenario_figure(frame: pd.DataFrame) -> go.Figure:
             "Digital-twin residuals",
         ),
     )
+    lift_subplot_titles(figure)
     traces = (
         (1, "true_pv_kw", "True PV", "#2F855A", None),
         (1, "pv_kw", "Reported PV", "#1769AA", None),
@@ -62,12 +65,10 @@ def build_scenario_figure(frame: pd.DataFrame) -> go.Figure:
     figure.add_hline(y=0, line_color="#718096", line_width=1, row=4, col=1)
     for row in range(1, 5):
         figure.update_yaxes(title_text="Power (kW)", row=row, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title="CPS Sentinel - Phase 3 attack and fault scenario",
-        template="plotly_white",
         height=1050,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.04},
     )
     return figure
 

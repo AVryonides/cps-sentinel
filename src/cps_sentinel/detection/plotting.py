@@ -8,6 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
+
 
 def build_detection_figure(frame: pd.DataFrame) -> go.Figure:
     """Build residual, detector-layer, confidence, and timeline panels."""
@@ -23,6 +25,7 @@ def build_detection_figure(frame: pd.DataFrame) -> go.Figure:
             "Detection versus evaluation-only ground truth",
         ),
     )
+    lift_subplot_titles(figure)
     for column, name, color in (
         ("pv_residual_kw", "PV residual", "#D69E2E"),
         ("grid_power_residual_kw", "Grid residual", "#C53030"),
@@ -89,12 +92,10 @@ def build_detection_figure(frame: pd.DataFrame) -> go.Figure:
     figure.update_yaxes(title_text="Layer score", row=2, col=1)
     figure.update_yaxes(title_text="Confidence", range=[0, 1.05], row=3, col=1)
     figure.update_yaxes(title_text="Active", range=[-0.1, 1.1], row=4, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title="CPS Sentinel - Phase 4 hybrid detection",
-        template="plotly_white",
         height=1050,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.04},
     )
     return figure
 

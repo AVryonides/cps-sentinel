@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from cps_sentinel.plot_style import apply_report_layout, lift_subplot_titles
 from cps_sentinel.swat.analysis import SwatEvaluation, SwatEvent
 
 
@@ -30,7 +31,7 @@ def build_swat_figure(
         ),
         row_heights=(0.48, 0.24, 0.28),
     )
-    figure.update_annotations(yshift=30)
+    lift_subplot_titles(figure, yshift=34)
     figure.add_trace(
         go.Scatter(x=x, y=frame["anomaly_score"], name="Anomaly score", line={"color": "#42C6D7"}),
         row=1,
@@ -86,18 +87,16 @@ def build_swat_figure(
     figure.update_yaxes(title_text="Score", row=1, col=1)
     figure.update_yaxes(title_text="Active", tickvals=[0, 1], row=2, col=1)
     figure.update_xaxes(title_text="Event count", row=3, col=1)
-    figure.update_layout(
+    apply_report_layout(
+        figure,
         title=(
             "CPS Sentinel - Phase 8 SWaT security validation"
             f"<br><sup>Point F1 {evaluation.f1:.3f} · Event recall "
             f"{evaluation.event_recall:.1%} · False-positive rate "
             f"{evaluation.false_positive_rate:.3%}</sup>"
         ),
-        template="plotly_white",
         height=1000,
-        hovermode="x unified",
-        legend={"orientation": "h", "y": 1.14, "x": 0},
-        margin={"t": 155},
+        top_margin=145,
     )
     return figure
 
