@@ -1,4 +1,4 @@
-"""Orchestration and metrics for the Phase 1 smart nanogrid simulator."""
+"""Orchestration and metrics for the smart nanogrid simulator."""
 
 from __future__ import annotations
 

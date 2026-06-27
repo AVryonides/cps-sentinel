@@ -658,7 +658,7 @@ def _render_swat_dashboard(state: ExternalTrackState) -> None:
                 ).classes("hero-copy")
             _hero_context_card(
                 "Current benchmark",
-                "The local Phase 8 result uses the official SWaT.A4/A5 July 2019 historian workbook and its companion attack schedule. The raw files remain local; the UI reads only derived processed outputs.",
+                "The local SWaT result uses the official SWaT.A4/A5 July 2019 historian workbook and its companion attack schedule. The raw files remain local; the UI reads only derived processed outputs.",
             )
         with ui.row().classes("status-line items-center gap-4 w-full"):
             ui.element("span").classes("status-dot").style("background: var(--cyan)")

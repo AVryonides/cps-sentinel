@@ -1,4 +1,4 @@
-"""Rule-based energy-management controller for the Phase 1 nanogrid."""
+"""Rule-based energy-management controller for the nanogrid."""
 
 from __future__ import annotations
 
