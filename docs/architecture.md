@@ -11,24 +11,32 @@ External datasets are validation tracks:
 They share data contracts, evaluation conventions, and alert schemas without pretending to
 describe the same physical plant.
 
-## First vertical slice
+## Overall architecture
 
 ```mermaid
 flowchart LR
-    E[Environment profiles] --> P[Physical nanogrid simulator]
-    E --> T[Digital twin]
-    A[Attack injector] --> S[Observed sensor stream]
-    P --> S
-    T --> R[Residual detector]
-    S --> R
-    R --> C[Event correlation]
-    C --> L[Risk-ranked explainable alert]
-    L --> D[NiceGUI web dashboard]
+    E["Environment: PV and load"] --> P["Physical nanogrid"]
+    P --> S["Sensor measurements"]
+    A["Attack/fault injector"] --> S
+    E --> T["Digital twin"]
+    S --> D["Detection engine"]
+    T --> D
+    D --> C["Event classification"]
+    C --> R["Risk and response engine"]
+    R --> UI["Interactive dashboard"]
+
+    NASA["NASA battery data"] --> H["Health-monitoring track"]
+    SWAT["iTrust SWaT data"] --> X["Security-validation track"]
+    H --> UI
+    X --> UI
 ```
 
 The controller may consume an attacked measurement, while the twin must retain an
 independent basis for estimating expected behavior. That separation prevents a compromised
 sensor from corrupting both sides of the residual comparison identically.
+
+NASA and SWaT are validation tracks feeding the same presentation layer; they do not represent
+the same physical plant as the nanogrid.
 
 ## Engineering principles
 
