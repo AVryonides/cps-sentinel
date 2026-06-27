@@ -1,4 +1,4 @@
-"""Interactive Phase 5 risk and response report."""
+"""Interactive risk and response report."""
 
 from __future__ import annotations
 
@@ -102,7 +102,7 @@ def build_risk_figure(
     figure.update_yaxes(title_text="Risk", range=[0, 105], row=4, col=1)
     apply_report_layout(
         figure,
-        title="CPS Sentinel - Phase 5 risk-ranked decision support",
+        title="CPS Sentinel - risk-ranked decision support",
         height=1050,
     )
     return figure

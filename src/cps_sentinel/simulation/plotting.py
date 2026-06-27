@@ -1,4 +1,4 @@
-"""Interactive Plotly visualization for Phase 1 simulation output."""
+"""Interactive Plotly visualization for nanogrid simulation output."""
 
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ def build_simulation_figure(frame: pd.DataFrame, battery: BatteryConfig) -> go.F
     figure.update_yaxes(title_text="SOC (%)", range=[0, 100], row=3, col=1)
     apply_report_layout(
         figure,
-        title="CPS Sentinel - Phase 1 nanogrid simulation",
+        title="CPS Sentinel - nanogrid simulation",
         height=850,
     )
     return figure

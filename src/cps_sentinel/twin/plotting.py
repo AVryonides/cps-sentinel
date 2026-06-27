@@ -46,7 +46,7 @@ def build_twin_figure(frame: pd.DataFrame) -> go.Figure:
     figure.update_yaxes(title_text="Residual", row=4, col=1)
     apply_report_layout(
         figure,
-        title="CPS Sentinel - Phase 2 digital twin",
+        title="CPS Sentinel - digital twin",
         height=1000,
     )
     return figure

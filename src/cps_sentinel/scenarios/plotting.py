@@ -67,7 +67,7 @@ def build_scenario_figure(frame: pd.DataFrame) -> go.Figure:
         figure.update_yaxes(title_text="Power (kW)", row=row, col=1)
     apply_report_layout(
         figure,
-        title="CPS Sentinel - Phase 3 attack and fault scenario",
+        title="CPS Sentinel - attack and fault scenario",
         height=1050,
     )
     return figure

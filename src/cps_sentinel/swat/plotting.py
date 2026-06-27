@@ -90,7 +90,7 @@ def build_swat_figure(
     apply_report_layout(
         figure,
         title=(
-            "CPS Sentinel - Phase 8 SWaT security validation"
+            "CPS Sentinel - SWaT security validation"
             f"<br><sup>Point F1 {evaluation.f1:.3f} · Event recall "
             f"{evaluation.event_recall:.1%} · False-positive rate "
             f"{evaluation.false_positive_rate:.3%}</sup>"

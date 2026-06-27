@@ -116,7 +116,7 @@ def load_health_dashboard_result(path: str | Path) -> ExternalTrackState:
     if not source.is_file():
         return ExternalTrackState(
             status="not_ready",
-            message="Run the Phase 7 health command to generate the local dashboard result.",
+            message="Run the NASA health command to generate the local dashboard result.",
         )
     try:
         frame = pd.read_csv(source)
@@ -155,7 +155,7 @@ def load_swat_dashboard_result(path: str | Path, settings: Settings) -> External
     if not source.is_file():
         return ExternalTrackState(
             status="not_ready",
-            message="Run the Phase 8 SWaT command after receiving authorized iTrust files.",
+            message="Run the SWaT command after receiving authorized iTrust files.",
         )
     try:
         frame = pd.read_csv(source)
@@ -189,13 +189,13 @@ def load_swat_dashboard_result(path: str | Path, settings: Settings) -> External
 
 
 def build_health_dashboard_figure(result: HealthDashboardResult, settings: Settings) -> go.Figure:
-    """Restyle the Phase 7 report for the unified dark operations interface."""
+    """Restyle the battery-health report for the unified dark operations interface."""
     figure = build_health_figure(result.frame, settings.health)
     return _style_external_figure(figure, "Battery capacity, health, and remaining life")
 
 
 def build_swat_dashboard_figure(result: SwatDashboardResult) -> go.Figure:
-    """Restyle the Phase 8 report for the unified dark operations interface."""
+    """Restyle the SWaT report for the unified dark operations interface."""
     figure = build_swat_figure(result.frame, list(result.events), result.evaluation)
     return _style_external_figure(
         figure,

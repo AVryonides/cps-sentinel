@@ -94,7 +94,7 @@ def build_detection_figure(frame: pd.DataFrame) -> go.Figure:
     figure.update_yaxes(title_text="Active", range=[-0.1, 1.1], row=4, col=1)
     apply_report_layout(
         figure,
-        title="CPS Sentinel - Phase 4 hybrid detection",
+        title="CPS Sentinel - hybrid detection",
         height=1050,
     )
     return figure

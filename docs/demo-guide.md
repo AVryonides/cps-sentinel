@@ -1,8 +1,7 @@
-# Phase 15: final showcase guide
+# Demo guide
 
-Phase 15 packages CPS Sentinel into a repeatable portfolio demonstration. The goal is to make the
-project easy to present in a GitHub review, CV interview, or live demo without improvising the
-story each time.
+This guide packages CPS Sentinel into a repeatable portfolio demonstration. Use it for a GitHub
+walkthrough, CV interview, or live demo.
 
 ## Thirty-second pitch
 
@@ -84,8 +83,9 @@ cps-sentinel report --config config/default.yaml
 
 | Artifact | Why it matters |
 | --- | --- |
+| `README.md` | Shows the complete public-facing project overview and Mermaid architecture. |
 | `app/nicegui_app.py` | Shows the unified NiceGUI operations dashboard. |
-| `docs/architecture.md` | Shows the system boundary and validation tracks using Mermaid. |
+| `docs/architecture.md` | Shows the system boundary and validation tracks. |
 | `docs/project-brief.md` | Gives a one-page explanation for recruiters and reviewers. |
 | `docs/cv-project-summary.md` | Contains CV-ready bullets and interview talking points. |
 | `reports/benchmarks/scenario-benchmark.md` | Local generated evidence that all scenarios were benchmarked. |
@@ -109,9 +109,3 @@ and validates health/security tracks on NASA battery and iTrust SWaT data.
   restricted data out of Git.
 - **Honest limitations:** SWaT is useful at event level, while point-level recall remains an
   improvement area.
-
-## Next technical improvements
-
-- Add optional dashboard screenshots to the README after the final UI pass.
-- Add a stable GitHub release tag once the final dashboard review is complete.
-- Add a short demo video or GIF if you want the repo to feel more product-like.

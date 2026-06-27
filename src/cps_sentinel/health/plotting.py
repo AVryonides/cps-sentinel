@@ -99,7 +99,7 @@ def build_health_figure(frame: pd.DataFrame, config: HealthConfig) -> go.Figure:
     figure.update_xaxes(title_text="Discharge cycle", row=3, col=1)
     apply_report_layout(
         figure,
-        title="CPS Sentinel - Phase 7 NASA battery health validation",
+        title="CPS Sentinel - NASA battery health validation",
         height=1050,
     )
     return figure

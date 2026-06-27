@@ -55,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate = commands.add_parser("validate", help="Validate a project configuration")
     validate.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
 
-    simulate = commands.add_parser("simulate", help="Run the Phase 1 nanogrid simulator")
+    simulate = commands.add_parser("simulate", help="Run the nanogrid simulator")
     simulate.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     simulate.add_argument(
         "--output",
@@ -64,7 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     simulate.add_argument("--plot", help="Optional destination for an interactive HTML plot")
 
-    twin = commands.add_parser("twin", help="Run the Phase 2 independent digital twin")
+    twin = commands.add_parser("twin", help="Run the independent digital twin")
     twin.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     twin.add_argument("--input", help="Optional observed simulation CSV; generated if omitted")
     twin.add_argument(
@@ -74,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     twin.add_argument("--plot", help="Optional destination for an interactive HTML plot")
 
-    scenario = commands.add_parser("scenario", help="Run a labeled Phase 3 attack or fault")
+    scenario = commands.add_parser("scenario", help="Run a labeled attack or fault scenario")
     scenario.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     scenario.add_argument("--scenario", required=True, help="Path to scenario YAML")
     scenario.add_argument(
@@ -84,7 +84,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     scenario.add_argument("--plot", help="Optional destination for an interactive HTML plot")
 
-    detect = commands.add_parser("detect", help="Run Phase 4 hybrid detection and diagnosis")
+    detect = commands.add_parser("detect", help="Run hybrid detection and diagnosis")
     detect.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     detect.add_argument("--scenario", required=True, help="Path to scenario YAML")
     detect.add_argument(
@@ -99,7 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     detect.add_argument("--plot", help="Optional destination for an interactive HTML plot")
 
-    assess = commands.add_parser("assess", help="Run Phase 5 risk assessment and response guidance")
+    assess = commands.add_parser("assess", help="Run risk assessment and response guidance")
     assess.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     assess.add_argument("--scenario", required=True, help="Path to scenario YAML")
     assess.add_argument(
@@ -114,7 +114,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     assess.add_argument("--plot", help="Optional destination for an interactive HTML plot")
 
-    health = commands.add_parser("health", help="Run Phase 7 NASA battery health validation")
+    health = commands.add_parser("health", help="Run NASA battery health validation")
     health.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     health.add_argument(
         "--input",
@@ -133,7 +133,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     health.add_argument("--plot", help="Optional destination for an interactive HTML plot")
 
-    swat = commands.add_parser("swat", help="Run Phase 8 iTrust SWaT security validation")
+    swat = commands.add_parser("swat", help="Run iTrust SWaT security validation")
     swat.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     swat.add_argument("--normal", help="Authorized normal historian CSV/XLSX")
     swat.add_argument("--attack", help="Authorized labeled attack historian CSV/XLSX")
@@ -164,7 +164,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     swat.add_argument("--plot", help="Optional destination for an interactive HTML report")
 
-    demo = commands.add_parser("demo", help="Run the Phase 11 reproducible local demo workflow")
+    demo = commands.add_parser("demo", help="Run the reproducible local demo workflow")
     demo.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     demo.add_argument(
         "--scenario",
@@ -187,7 +187,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional processed SWaT security CSV to summarize if present",
     )
 
-    report = commands.add_parser("report", help="Run the Phase 13 operator incident report export")
+    report = commands.add_parser("report", help="Run the operator incident report export")
     report.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     report.add_argument(
         "--scenario",
@@ -200,7 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination Markdown incident report",
     )
 
-    benchmark = commands.add_parser("benchmark", help="Run the Phase 14 scenario benchmark matrix")
+    benchmark = commands.add_parser("benchmark", help="Run the scenario benchmark matrix")
     benchmark.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     benchmark.add_argument(
         "--scenario-dir",
