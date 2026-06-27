@@ -20,7 +20,8 @@ operator guidance, dashboard explainability, and reproducible demo packaging.
 
 - [One-page project brief](docs/project-brief.md)
 - [CV-ready project summary](docs/cv-project-summary.md)
-- [Overall architecture PDF](output/pdf/cps-sentinel-overall-architecture.pdf)
+- [Rendered Mermaid architecture](docs/architecture.md)
+- [Demo and interview guide](docs/phase-15-showcase-guide.md)
 
 ## What this project demonstrates
 
@@ -42,6 +43,7 @@ operator guidance, dashboard explainability, and reproducible demo packaging.
 | Track | Dataset / source | Current result |
 | --- | --- | --- |
 | Nanogrid attack demo | Deterministic smart-nanogrid scenario | F1 0.972, risk score 95.2/100, one persistent incident |
+| Nanogrid scenario benchmark | 8 committed attack/fault scenarios | 8/8 events detected, average F1 0.886 |
 | Battery health | NASA battery aging data | 4 batteries, 636 discharge cycles, RUL MAE 8.99 cycles |
 | Industrial security | iTrust SWaT.A4/A5 July 2019 | 5/6 scheduled attacks detected, point F1 0.446, FPR 11.93% |
 
@@ -182,6 +184,15 @@ cps-sentinel benchmark \
 This evaluates every committed nanogrid scenario YAML with one clean baseline detector
 calibration and writes CSV/Markdown benchmark artifacts. See
 [the Phase 14 benchmark note](docs/phase-14-scenario-benchmark.md) for details.
+
+Follow the final showcase guide:
+
+```bash
+open docs/phase-15-showcase-guide.md
+```
+
+The guide gives the exact demo flow, commands, artifacts to show, CV bullets, and interview
+talking points. See [the Phase 15 showcase guide](docs/phase-15-showcase-guide.md).
 
 ## Repository map
 

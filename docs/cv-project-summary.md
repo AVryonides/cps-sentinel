@@ -21,6 +21,8 @@ NiceGUI explainability dashboard.
   evidence, physical impact, detector reasoning, risk score, and bounded response guidance.
 - Added a reproducible demo workflow that regenerates local CSV, JSON, HTML, manifest, and
   markdown report artifacts with one CLI command.
+- Added scenario benchmarking and operator-report export workflows, detecting events across all
+  8 committed nanogrid scenarios with average F1 0.886.
 
 ## Suggested one-line CV entry
 
@@ -34,3 +36,4 @@ NiceGUI, Plotly, scikit-learn, NASA battery data, and iTrust SWaT process data.
 - Why event-level detection can be operationally useful even when point-level recall is imperfect.
 - How the response layer is intentionally bounded as decision support, not autonomous actuation.
 - How the project balances reproducibility with restricted dataset handling.
+- How the scenario benchmark complements the flagship incident demo.

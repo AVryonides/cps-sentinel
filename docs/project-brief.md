@@ -33,6 +33,7 @@ External validation tracks extend the project beyond synthetic data:
 | Track | Result |
 | --- | --- |
 | Nanogrid attack demo | F1 0.972 and risk score 95.2/100 on the flagship PV false-data injection scenario |
+| Nanogrid scenario benchmark | 8/8 committed scenarios detected, average F1 0.886 |
 | NASA battery health | 4 batteries, 636 discharge cycles, RUL MAE 8.99 cycles |
 | SWaT industrial security | 5/6 scheduled attack events detected, point F1 0.446, false-positive rate 11.93% |
 
