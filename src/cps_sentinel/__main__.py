@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from cps_sentinel.benchmark import run_scenario_benchmark
 from cps_sentinel.config import load_settings
 from cps_sentinel.demo import run_demo_workflow
 from cps_sentinel.detection import (
@@ -197,6 +198,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--output",
         default="reports/incidents/nanogrid-incident-report.md",
         help="Destination Markdown incident report",
+    )
+
+    benchmark = commands.add_parser("benchmark", help="Run the Phase 14 scenario benchmark matrix")
+    benchmark.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
+    benchmark.add_argument(
+        "--scenario-dir",
+        default="config/scenarios",
+        help="Directory containing scenario YAML files",
+    )
+    benchmark.add_argument(
+        "--output",
+        default="reports/benchmarks/scenario-benchmark.csv",
+        help="Destination scenario benchmark CSV",
+    )
+    benchmark.add_argument(
+        "--report",
+        default="reports/benchmarks/scenario-benchmark.md",
+        help="Destination Markdown benchmark report",
     )
     return parser
 
@@ -459,6 +478,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Alerts: {incident_report.alerts}")
         print(f"Primary risk: {incident_report.primary_risk}")
         print(f"Report: {incident_report.report_path}")
+        return 0
+
+    if args.command == "benchmark":
+        benchmark_result = run_scenario_benchmark(
+            settings=settings,
+            scenario_dir=Path(args.scenario_dir),
+            output_csv=Path(args.output),
+            output_report=Path(args.report),
+        )
+        print("Scenario benchmark complete")
+        print(f"Scenarios evaluated: {len(benchmark_result.rows)}")
+        print(
+            f"Events detected: {benchmark_result.detected_events}/"
+            f"{len(benchmark_result.rows)}"
+        )
+        print(f"Average F1: {benchmark_result.average_f1:.3f}")
+        print(f"CSV: {benchmark_result.csv_path}")
+        print(f"Report: {benchmark_result.report_path}")
         return 0
 
     steps = settings.simulation.duration_hours * 60 // settings.simulation.timestep_minutes

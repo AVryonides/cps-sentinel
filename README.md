@@ -169,6 +169,20 @@ This writes a local Markdown report with an executive summary, detection metrics
 evidence, risk-factor breakdown, recommended operator sequence, and safety boundary. See
 [the Phase 13 incident-report note](docs/phase-13-incident-report.md) for details.
 
+Generate a scenario benchmark matrix:
+
+```bash
+cps-sentinel benchmark \
+  --config config/default.yaml \
+  --scenario-dir config/scenarios \
+  --output reports/benchmarks/scenario-benchmark.csv \
+  --report reports/benchmarks/scenario-benchmark.md
+```
+
+This evaluates every committed nanogrid scenario YAML with one clean baseline detector
+calibration and writes CSV/Markdown benchmark artifacts. See
+[the Phase 14 benchmark note](docs/phase-14-scenario-benchmark.md) for details.
+
 ## Repository map
 
 | Path | Purpose |
@@ -180,6 +194,7 @@ evidence, risk-factor breakdown, recommended operator sequence, and safety bound
 | `docs/` | Phase notes, architecture notes, project brief, and CV summary |
 | `reports/demo/` | Local generated demo artifacts; ignored by Git |
 | `reports/incidents/` | Local generated incident reports; ignored by Git |
+| `reports/benchmarks/` | Local generated scenario benchmark artifacts; ignored by Git |
 | `data/raw/` | Local-only restricted datasets; ignored by Git |
 
 Run Phase 7 NASA battery health validation after downloading and extracting the official archive:
