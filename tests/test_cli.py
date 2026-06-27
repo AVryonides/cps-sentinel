@@ -361,3 +361,32 @@ def test_report_command_writes_operator_incident_report(tmp_path: Path) -> None:
     assert "Risk score: **95.2 / 100**" in report_text
     assert "Recommended operator sequence" in report_text
     assert "Safety boundary" in report_text
+
+
+def test_benchmark_command_writes_scenario_matrix(tmp_path: Path) -> None:
+    output = tmp_path / "scenario-benchmark.csv"
+    report = tmp_path / "scenario-benchmark.md"
+
+    exit_code = main(
+        [
+            "benchmark",
+            "--config",
+            str(ROOT / "config" / "default.yaml"),
+            "--scenario-dir",
+            str(ROOT / "config" / "scenarios"),
+            "--output",
+            str(output),
+            "--report",
+            str(report),
+        ]
+    )
+
+    frame = pd.read_csv(output)
+    report_text = report.read_text(encoding="utf-8")
+    assert exit_code == 0
+    assert len(frame) == 8
+    assert "scenario" in frame.columns
+    assert frame["event_detected"].all()
+    assert "CPS Sentinel scenario benchmark matrix" in report_text
+    assert "PV sensor false-data injection" in report_text
+    assert "Average F1" in report_text

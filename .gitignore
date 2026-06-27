@@ -30,3 +30,4 @@ reports/figures/**/*
 !reports/figures/.gitkeep
 reports/demo/**/*
 reports/incidents/**/*
+reports/benchmarks/**/*
