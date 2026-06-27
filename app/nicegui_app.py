@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from nicegui import events, run, ui
+from nicegui import run, ui
 
 from cps_sentinel.config import load_settings
 from cps_sentinel.dashboard import (
@@ -52,10 +52,11 @@ CSS = """
   --line-strong: #344457;
   --text: #edf2f7;
   --muted: #94a3b3;
-  --cyan: #42c6d7;
-  --amber: #e5a93d;
-  --red: #e66565;
-  --green: #55d18b;
+  --cyan: #8fd6e4;
+  --blue: #7aa2f7;
+  --amber: #e5bf6a;
+  --red: #f07f7f;
+  --green: #7bd8a3;
 }
 html { scroll-behavior: smooth; background: var(--bg); }
 body, .q-page, .q-layout { background: var(--bg) !important; color: var(--text); }
@@ -77,9 +78,26 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .mode-button { width: 100%; justify-content: flex-start; color: var(--text) !important;
   border: 1px solid var(--line) !important; border-radius: 3px !important; margin-top: 7px; }
 .mode-button:hover { border-color: var(--cyan) !important; background: #131c26 !important; }
-.scenario-select .q-field__control { background: var(--surface); border-radius: 4px; color: var(--text); }
-.scenario-select .q-field__native, .scenario-select .q-field__label,
-.scenario-select .q-field__marginal { color: var(--text) !important; }
+.mode-button.is-active { border-color: rgba(143, 214, 228, .72) !important;
+  background: rgba(143, 214, 228, .08) !important; box-shadow: inset 3px 0 0 var(--cyan); }
+.scenario-card { width: 100%; justify-content: flex-start; align-items: flex-start;
+  color: #c9d3de !important; background: #0d141c !important; border: 1px solid var(--line) !important;
+  border-radius: 4px !important; margin: 7px 0 0; padding: 11px 12px !important;
+  text-align: left !important; }
+.scenario-card:hover { border-color: rgba(143, 214, 228, .56) !important;
+  background: #121b25 !important; }
+.scenario-card.is-active { border-color: rgba(143, 214, 228, .78) !important;
+  background: rgba(143, 214, 228, .08) !important; box-shadow: inset 3px 0 0 var(--cyan); }
+.scenario-title { color: var(--text); font-size: 12px; font-weight: 650; line-height: 1.25; }
+.scenario-meta { color: var(--muted); font: 650 9px/1.45 ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .08em; text-transform: uppercase; margin-top: 5px; }
+.research-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); margin-top: 26px; width: 100%; }
+.research-cell { background: #0d141c; padding: 18px 20px; }
+.research-label { color: var(--cyan); font: 650 10px/1.3 ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .12em; text-transform: uppercase; }
+.research-value { color: #c8d2dc; font-size: 13px; line-height: 1.55; margin-top: 8px; }
+.sidebar-status { border-top: 1px solid var(--line); margin: 22px 10px 0; padding-top: 15px; }
 .eyebrow { color: var(--cyan); font: 650 11px/1 ui-monospace, SFMono-Regular, monospace;
   letter-spacing: .16em; text-transform: uppercase; }
 .hero-title { font-size: clamp(32px, 4vw, 58px); font-weight: 620; letter-spacing: -.035em;
@@ -167,7 +185,7 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 @media (max-width: 1050px) {
   .page-shell { width: 100%; padding: 82px 24px 52px; }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .metric-help-grid, .explain-grid, .hero-grid { grid-template-columns: 1fr; }
+  .metric-help-grid, .explain-grid, .hero-grid, .research-strip { grid-template-columns: 1fr; }
   .mobile-menu { display: inline-flex !important; }
 }
 @media (max-width: 640px) {
@@ -233,6 +251,21 @@ def _hero_context_card(title: str, copy: str) -> None:
         ui.label(copy).classes("hero-panel-copy")
 
 
+def _research_cell(label: str, value: str) -> None:
+    with ui.column().classes("research-cell gap-0"):
+        ui.label(label).classes("research-label")
+        ui.label(value).classes("research-value")
+
+
+def _button_active_class(base: str, is_active: bool) -> str:
+    return f"{base} is-active" if is_active else base
+
+
+def _scenario_kind_label(name: str) -> str:
+    path = CATALOG[name]
+    return path.stem.replace("-", " ").title()
+
+
 def _render_dashboard(result: DashboardResult) -> None:
     alert = result.primary_alert
     heading, summary = plain_language_summary(result)
@@ -240,20 +273,20 @@ def _render_dashboard(result: DashboardResult) -> None:
     with ui.column().classes("w-full gap-0"):
         with ui.element("div").classes("hero-grid"):
             with ui.column().classes("w-full gap-0"):
-                ui.label("CYBER-PHYSICAL SYSTEM MONITOR").classes("eyebrow")
+                ui.label("RESEARCH VALIDATION WORKBENCH").classes("eyebrow")
+                ui.label("Digital-twin evidence for cyber-physical anomaly research.").classes(
+                    "hero-title"
+                )
                 ui.label(
-                    "A dashboard for explaining CPS incidents, not just plotting them."
-                ).classes("hero-title")
-                ui.label(
-                    "CPS Sentinel compares a simulated nanogrid with an independent digital twin. "
-                    "When the physical system, reported sensor values, and expected behavior stop "
-                    "agreeing, it turns the evidence into an operator-readable incident story."
+                    "CPS Sentinel runs controlled nanogrid experiments, withholds labels during "
+                    "detection, compares measurements against an independent digital twin, and "
+                    "then reports the evidence as reproducible research findings."
                 ).classes("hero-copy")
             _hero_context_card(
-                "What you are looking at",
-                "This page follows one scenario from raw plant behavior to detection, diagnosis, "
-                "risk score, and bounded response guidance. It is decision support only; no control "
-                "commands are sent from the dashboard.",
+                "Experiment protocol",
+                "Each scenario is generated from a committed YAML file. The detector is calibrated "
+                "on clean operation only; labels are used after scoring to evaluate precision, "
+                "recall, delay, and physical impact.",
             )
             with ui.row().classes("status-line items-center gap-4 w-full"):
                 ui.element("span").classes("status-dot")
@@ -262,6 +295,20 @@ def _render_dashboard(result: DashboardResult) -> None:
                 )
                 ui.space()
                 ui.label(result.scenario.name).classes("status-text")
+
+        with ui.element("div").classes("research-strip"):
+            _research_cell(
+                "Dataset boundary",
+                "Synthetic nanogrid observations are generated locally; restricted NASA and SWaT files remain outside Git.",
+            )
+            _research_cell(
+                "Calibration boundary",
+                "The detector sees clean baseline data only. Scenario labels are evaluation-only evidence.",
+            )
+            _research_cell(
+                "Research output",
+                "The dashboard links anomaly scores to residuals, event timing, physical impact, and bounded response guidance.",
+            )
 
         with ui.element("div").classes("metric-grid"):
             _metric("System state", "Alert" if alert else "Normal", "Persistent event status")
@@ -341,7 +388,7 @@ def _render_dashboard(result: DashboardResult) -> None:
                 )
             with ui.row().classes("w-full gap-4"):
                 with ui.column().classes("panel gap-3 grow"):
-                    ui.label("Scenario").classes("metric-label")
+                    ui.label("Experiment").classes("metric-label")
                     ui.label(result.scenario.name).classes("text-xl text-white")
                     ui.label(
                         f"{result.scenario.ground_truth_label.title()} · "
@@ -766,6 +813,7 @@ def build_page() -> None:
     """Build one client-private dashboard page."""
     state: dict[str, Any] = {
         "mode": "nanogrid",
+        "selected_scenario": DEFAULT_SCENARIO,
         "result": run_dashboard_scenario(str(CONFIG_PATH), str(CATALOG[DEFAULT_SCENARIO])),
     }
     health_state = load_health_dashboard_result(HEALTH_RESULT_PATH)
@@ -773,13 +821,23 @@ def build_page() -> None:
 
     def change_mode(mode: str) -> None:
         state["mode"] = mode
+        nav_controls.refresh()
         content.refresh()
+        ui.run_javascript("window.scrollTo({top: 0, behavior: 'smooth'})")
 
-    async def change_scenario(event: events.ValueChangeEventArguments) -> None:
-        path = CATALOG[str(event.value)]
-        ui.notify("Running scenario analysis", type="ongoing", timeout=1200)
+    async def change_scenario(scenario_name: str) -> None:
+        if scenario_name == state["selected_scenario"] and state["mode"] == "nanogrid":
+            ui.run_javascript("window.scrollTo({top: 0, behavior: 'smooth'})")
+            return
+        path = CATALOG[scenario_name]
+        state["mode"] = "nanogrid"
+        state["selected_scenario"] = scenario_name
+        nav_controls.refresh()
+        ui.notify(f"Running experiment: {scenario_name}", type="ongoing", timeout=1400)
         state["result"] = await run.io_bound(run_dashboard_scenario, str(CONFIG_PATH), str(path))
         content.refresh()
+        nav_controls.refresh()
+        ui.run_javascript("window.scrollTo({top: 0, behavior: 'smooth'})")
 
     drawer = ui.left_drawer().props("width=280 breakpoint=1050 show-if-above bordered")
     with drawer, ui.column().classes("w-full px-4 pt-5 gap-0"):
@@ -787,48 +845,70 @@ def build_page() -> None:
             ui.html('<div class="brand-mark">CS</div>')
             with ui.column().classes("gap-0"):
                 ui.label("CPS Sentinel").classes("brand-name")
-                ui.label("System monitor").classes("brand-sub")
-        ui.label("Navigate").classes("nav-label")
-        for label, mode, marker in (
-            ("Nanogrid monitor", "nanogrid", "mode-nanogrid"),
-            ("Battery health", "health", "mode-health"),
-            ("SWaT security", "swat", "mode-swat"),
-        ):
-            ui.button(label, on_click=lambda selected=mode: change_mode(selected)).props(
-                "flat no-caps align=left"
-            ).classes("mode-button").mark(marker)
-        ui.label("Nanogrid sections").classes("nav-label")
-        for label, target in (
-            ("Incident overview", "overview"),
-            ("Sensor evidence", "sensor"),
-            ("Physical consequence", "impact"),
-            ("Detection logic", "detection"),
-            ("Operator response", "response"),
-            ("Quick reference", "glossary"),
-        ):
-            ui.button(label, on_click=lambda section=target: _jump_to(section)).props(
-                "flat no-caps align=left"
-            ).classes("nav-button")
-        ui.label("Scenario").classes("nav-label")
-        ui.select(
-            options=list(CATALOG),
-            value=DEFAULT_SCENARIO,
-            on_change=change_scenario,
-        ).props("outlined dense options-dense").classes("scenario-select w-full px-2").mark(
-            "scenario-select"
-        )
-        with ui.column().classes("mt-7 px-3 gap-2"):
-            ui.label("Analysis pipeline").classes("metric-label")
-            ui.label("Simulation → Twin → Detection → Risk → Explanation").classes("guide-copy")
-            ui.label("Raw restricted datasets stay local; labels are evaluation-only.").classes(
-                "guide-copy"
-            )
+                ui.label("Research dashboard").classes("brand-sub")
+
+        @ui.refreshable
+        def nav_controls() -> None:
+            ui.label("Research views").classes("nav-label")
+            for label, mode, marker in (
+                ("Nanogrid experiments", "nanogrid", "mode-nanogrid"),
+                ("Battery health validation", "health", "mode-health"),
+                ("SWaT security validation", "swat", "mode-swat"),
+            ):
+                ui.button(label, on_click=lambda selected=mode: change_mode(selected)).props(
+                    "flat no-caps align=left"
+                ).classes(_button_active_class("mode-button", state["mode"] == mode)).mark(marker)
+
+            ui.label("Experiment catalog").classes("nav-label")
+            for scenario_name in CATALOG:
+
+                async def select_scenario(selected: str = scenario_name) -> None:
+                    await change_scenario(selected)
+
+                with (
+                    ui.button(on_click=select_scenario)
+                    .props("flat no-caps align=left")
+                    .classes(
+                        _button_active_class(
+                            "scenario-card",
+                            state["mode"] == "nanogrid"
+                            and state["selected_scenario"] == scenario_name,
+                        )
+                    )
+                    .mark(f"scenario-{scenario_name.lower().replace(' ', '-')}"),
+                    ui.column().classes("gap-0 items-start"),
+                ):
+                    ui.label(scenario_name).classes("scenario-title")
+                    ui.label(_scenario_kind_label(scenario_name)).classes("scenario-meta")
+
+            ui.label("Nanogrid sections").classes("nav-label")
+            for label, target in (
+                ("Incident overview", "overview"),
+                ("Sensor evidence", "sensor"),
+                ("Physical consequence", "impact"),
+                ("Detection logic", "detection"),
+                ("Operator response", "response"),
+                ("Quick reference", "glossary"),
+            ):
+                ui.button(label, on_click=lambda section=target: _jump_to(section)).props(
+                    "flat no-caps align=left"
+                ).classes("nav-button")
+
+            with ui.column().classes("sidebar-status gap-2"):
+                ui.label("Selected experiment").classes("metric-label")
+                ui.label(str(state["selected_scenario"])).classes("guide-copy")
+                ui.label("Simulation → Twin → Detection → Risk → Explanation").classes("guide-copy")
+                ui.label("Raw restricted datasets stay local; labels are evaluation-only.").classes(
+                    "guide-copy"
+                )
+
+        nav_controls()
 
     with ui.header().classes("h-16 items-center px-4"):
         ui.button(icon="menu", on_click=drawer.toggle).props(
             "flat round aria-label=Open_navigation"
         ).classes("mobile-menu").mark("mobile-menu")
-        ui.label("CPS SENTINEL / UNIFIED OPERATIONS").classes("status-text")
+        ui.label("CPS SENTINEL / RESEARCH DASHBOARD").classes("status-text")
 
     with ui.column().classes("page-shell gap-0"):
 
