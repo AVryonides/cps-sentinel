@@ -39,6 +39,20 @@ measurements, independent digital twin, detector, event classification, risk sco
 NASA and SWaT are external validation tracks that prove the same monitoring language can also
 support health and industrial-security datasets.
 
+## Dashboard preview
+
+The NiceGUI dashboard presents the project as a research validation workbench: experiment catalog,
+calibration boundary, event evidence, risk scoring, and explainable response guidance in one view.
+
+![CPS Sentinel research dashboard overview](docs/assets/dashboard-overview.png)
+
+<details>
+<summary>View taller research-flow screenshot</summary>
+
+![CPS Sentinel research flow screenshot](docs/assets/dashboard-research-flow.png)
+
+</details>
+
 ## What this project demonstrates
 
 - A physics-aware nanogrid simulator with PV generation, load, battery state of charge, and grid
@@ -223,6 +237,7 @@ tags contributing most strongly to each event.
 | `app/nicegui_app.py` | Unified NiceGUI operations dashboard |
 | `config/default.yaml` | Main model, detector, risk, and health configuration |
 | `config/scenarios/` | Reproducible attack/fault scenario definitions |
+| `docs/assets/` | README screenshots and public visual assets |
 | `docs/architecture.md` | Architecture notes and system-boundary explanation |
 | `docs/project-brief.md` | One-page project explanation |
 | `docs/cv-project-summary.md` | CV-ready summary and interview talking points |
