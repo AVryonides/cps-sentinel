@@ -294,6 +294,7 @@ tags contributing most strongly to each event.
 | `config/default.yaml` | Main model, detector, risk, and health configuration |
 | `config/scenarios/` | Reproducible attack/fault scenario definitions |
 | `docs/assets/` | README screenshots and public visual assets |
+| `SHOWCASE.md` | Reviewer path, evidence map, quality checks, and data boundaries |
 | `docs/architecture.md` | Architecture notes and system-boundary explanation |
 | `docs/technical-overview.md` | Technical overview, results, and data boundaries |
 | `docs/demo-walkthrough.md` | Demo flow and showcase commands |
@@ -319,6 +320,7 @@ redistributed.
 
 ## Project documents
 
+- [Showcase guide](SHOWCASE.md)
 - [Architecture notes](docs/architecture.md)
 - [Technical overview](docs/technical-overview.md)
 - [Demo walkthrough](docs/demo-walkthrough.md)
