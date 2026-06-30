@@ -83,11 +83,55 @@ incident/event level, while point recall remains a future-improvement target.
 
 The project supports Python 3.11–3.13. Python 3.11 is used for local development.
 
+### macOS
+
+If Python 3.11 is not installed, one option is:
+
+```bash
+brew install python@3.11
+```
+
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e '.[dev]'
+```
+
+### Linux
+
+Install Python 3.11 with your distribution package manager if needed. On Debian/Ubuntu-based
+systems, that usually means:
+
+```bash
+sudo apt update
+sudo apt install python3.11 python3.11-venv
+```
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e '.[dev]'
+```
+
+### Windows PowerShell
+
+Install Python 3.11 from the Microsoft Store or from
+[python.org](https://www.python.org/downloads/), then run:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+If PowerShell blocks the activation script, allow scripts for the current user and try again:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\.venv\Scripts\Activate.ps1
 ```
 
 Run the test and quality checks:
@@ -104,11 +148,23 @@ Run the dashboard:
 python app/nicegui_app.py
 ```
 
-If port 8080 is busy:
+If port 8080 is busy, choose another port.
+
+macOS/Linux:
 
 ```bash
 CPS_SENTINEL_PORT=8081 python app/nicegui_app.py
 ```
+
+Windows PowerShell:
+
+```powershell
+$env:CPS_SENTINEL_PORT = "8081"
+python app/nicegui_app.py
+```
+
+Most workflow examples below use macOS/Linux line continuations with `\`. On Windows PowerShell,
+run the command on one line or replace `\` with PowerShell backticks.
 
 ## Core workflows
 
