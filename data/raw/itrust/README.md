@@ -9,7 +9,7 @@ Never attach SWaT data to a release or commit it with Git LFS.
 Official access and terms:
 https://www.sutd.edu.sg/itrust/request-for-datasets/
 
-## Phase 8 canonical experiment
+## Reference security-validation experiment
 
 - Dataset: SWaT.A4/A5 July 2019 historian data
 - Local workbook: `SWaT.A4 & A5_Jul 2019/SWaT_dataset_Jul 19 v2.xlsx`
@@ -21,5 +21,5 @@ https://www.sutd.edu.sg/itrust/request-for-datasets/
   Design
 
 The larger SWaT.A1/A2 December 2015 archive remains supported if historian-only normal and attack
-files become available, but it is not required for the current Phase 8 validation. File names have
+files become available, but it is not required for the current reference validation. File names have
 varied between releases; pass the actual local paths to the CLI.

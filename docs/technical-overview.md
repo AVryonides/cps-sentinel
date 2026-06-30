@@ -1,4 +1,4 @@
-# CPS Sentinel project brief
+# Technical overview
 
 CPS Sentinel is an end-to-end cyber-physical systems monitoring prototype. It combines a
 smart-nanogrid simulator, an independent physics-aware digital twin, attack/fault injection,

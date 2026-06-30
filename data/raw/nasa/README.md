@@ -9,7 +9,7 @@ when the dataset is introduced.
 Official repository:
 https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/
 
-## Phase 7 canonical experiment
+## Reference health-validation experiment
 
 - Archive: `5. Battery Data Set.zip` (raw archive is Git-ignored)
 - SHA-256: `82302a7db4fc1b34e0b6676326610438d43b816bdf11a69d1d012a464ef2f92e`

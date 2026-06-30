@@ -1,9 +1,10 @@
-# Demo guide
+# Demo walkthrough
 
-This guide packages CPS Sentinel into a repeatable portfolio demonstration. Use it for a GitHub
-walkthrough, CV interview, or live demo.
+This walkthrough presents CPS Sentinel as a repeatable technical demonstration. It is intended for
+reviewers who want to understand the system boundary, reproduce the main evidence flow, and inspect
+the generated artifacts without relying on restricted raw datasets.
 
-## Thirty-second pitch
+## Short project summary
 
 CPS Sentinel is a digital-twin cyber-physical systems monitoring prototype. It simulates a smart
 nanogrid, injects cyberattacks and faults, compares sensor evidence against an independent digital
@@ -69,7 +70,7 @@ industrial process data.
    This regenerates local evidence artifacts without committing generated data or restricted raw
    datasets.
 
-## Commands worth memorizing
+## Core commands
 
 ```bash
 pytest --cov --cov-report=term-missing
@@ -86,26 +87,6 @@ cps-sentinel report --config config/default.yaml
 | `README.md` | Shows the complete public-facing project overview and Mermaid architecture. |
 | `app/nicegui_app.py` | Shows the unified NiceGUI operations dashboard. |
 | `docs/architecture.md` | Shows the system boundary and validation tracks. |
-| `docs/project-brief.md` | Gives a one-page explanation for recruiters and reviewers. |
-| `docs/cv-project-summary.md` | Contains CV-ready bullets and interview talking points. |
+| `docs/technical-overview.md` | Summarizes implementation, results, and data boundaries. |
 | `reports/benchmarks/scenario-benchmark.md` | Local generated evidence that all scenarios were benchmarked. |
 | `reports/incidents/nanogrid-incident-report.md` | Local generated operator-facing incident report. |
-
-## Strong CV bullet
-
-Built CPS Sentinel, a Python/NiceGUI digital-twin CPS monitoring prototype that simulates
-nanogrid attacks/faults, calibrates detectors only on clean data, detects events across 8/8
-committed scenarios with average F1 0.886, ranks physical risk, exports operator incident reports,
-and validates health/security tracks on NASA battery and iTrust SWaT data.
-
-## Interview talking points
-
-- **No label leakage:** scenario labels are withheld during detection and used only afterward for
-  evaluation.
-- **Digital twin boundary:** expected behavior is produced independently from attacked sensor
-  readings.
-- **Safety boundary:** recommendations are decision support only, never autonomous actuation.
-- **External validation:** NASA and SWaT tracks validate methods on real datasets while keeping raw
-  restricted data out of Git.
-- **Honest limitations:** SWaT is useful at event level, while point-level recall remains an
-  improvement area.
