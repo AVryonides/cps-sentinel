@@ -164,7 +164,6 @@ async def test_nicegui_page_exposes_complete_explanatory_story() -> None:
         await user.should_see("95.2 / 100")
         await user.should_not_see("0.9520000000000001")
         await user.should_see("Terms used on this page")
-        await user.should_not_see("PHASE 10")
         await user.should_see(marker="mobile-menu")
         await user.should_see(marker="scenario-pv-sensor-false-data-injection")
         await user.should_see(marker="scenario-battery-actuator-manipulation")

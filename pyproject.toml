@@ -12,7 +12,7 @@ license = { text = "MIT" }
 authors = [{ name = "Alex Vryonides" }]
 keywords = ["cyber-physical-systems", "digital-twin", "anomaly-detection", "nanogrid"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 3 - Alpha",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
