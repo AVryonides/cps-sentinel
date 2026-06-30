@@ -82,7 +82,8 @@ def _render_report(
         "# CPS Sentinel operator incident report",
         "",
         "This report was generated locally from committed CPS Sentinel code. It is intended as "
-        "operator decision support and interview/demo evidence, not as an autonomous control log.",
+        "operator decision support and reproducible incident evidence, not as an autonomous "
+        "control log.",
         "",
         "## Executive summary",
         "",

@@ -6,9 +6,9 @@
 ![Python](https://img.shields.io/badge/python-3.11--3.13-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-CPS Sentinel is a portfolio-grade research prototype for detecting, explaining, and responding
-to faults and cyberattacks in cyber-physical systems. Its central system is a simulated smart
-nanogrid paired with an independent physics-aware digital twin.
+CPS Sentinel is a research prototype for detecting, explaining, and responding to faults and
+cyberattacks in cyber-physical systems. Its central system is a simulated smart nanogrid paired
+with an independent physics-aware digital twin.
 
 NASA battery data provides an external health-prognostics validation track. The iTrust SWaT
 dataset provides a separate industrial attack-detection validation track. These tracks share
@@ -239,9 +239,8 @@ tags contributing most strongly to each event.
 | `config/scenarios/` | Reproducible attack/fault scenario definitions |
 | `docs/assets/` | README screenshots and public visual assets |
 | `docs/architecture.md` | Architecture notes and system-boundary explanation |
-| `docs/project-brief.md` | One-page project explanation |
-| `docs/cv-project-summary.md` | CV-ready summary and interview talking points |
-| `docs/demo-guide.md` | Five-minute demo script and showcase commands |
+| `docs/technical-overview.md` | Technical overview, results, and data boundaries |
+| `docs/demo-walkthrough.md` | Demo flow and showcase commands |
 | `reports/demo/` | Local generated demo artifacts; ignored by Git |
 | `reports/incidents/` | Local generated incident reports; ignored by Git |
 | `reports/benchmarks/` | Local generated scenario benchmark artifacts; ignored by Git |
@@ -265,6 +264,5 @@ redistributed.
 ## Project documents
 
 - [Architecture notes](docs/architecture.md)
-- [One-page project brief](docs/project-brief.md)
-- [CV-ready project summary](docs/cv-project-summary.md)
-- [Demo guide](docs/demo-guide.md)
+- [Technical overview](docs/technical-overview.md)
+- [Demo walkthrough](docs/demo-walkthrough.md)
