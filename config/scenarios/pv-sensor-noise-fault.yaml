@@ -1,0 +1,7 @@
+name: PV sensor noise fault
+kind: sensor_noise
+target: pv_sensor
+start_step: 108
+duration_steps: 48
+intensity: 0.50
+seed: 137

@@ -1,0 +1,6 @@
+name: Battery actuator manipulation
+kind: actuator_manipulation
+target: battery_command
+start_step: 108
+duration_steps: 48
+intensity: 0.75
